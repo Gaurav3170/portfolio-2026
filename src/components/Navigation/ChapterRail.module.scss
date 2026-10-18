@@ -1,0 +1,89 @@
+@use "../../styles/tokens" as *;
+
+.rail {
+  position: fixed;
+  right: $gutter;
+  top: 50%;
+  z-index: 15;
+  transform: translateY(-50%);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.marker {
+  display: grid;
+  grid-template-columns: auto 22px;
+  align-items: center;
+  column-gap: 12px;
+  text-decoration: none;
+  color: $color-text-faint;
+  transition: color 0.4s ease;
+
+  &:hover,
+  &:focus-visible {
+    color: $color-text;
+  }
+}
+
+.year {
+  grid-column: 1;
+  justify-self: end;
+  font-family: $font-mono;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+// Labels appear only on hover or focus, keeping the rail quiet.
+.label {
+  position: absolute;
+  right: calc(100% + 16px);
+  white-space: nowrap;
+  font-size: 12px;
+  opacity: 0;
+  transform: translateX(6px);
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+  pointer-events: none;
+}
+
+.marker {
+  position: relative;
+
+  &:hover .label,
+  &:focus-visible .label {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.tick {
+  grid-column: 2;
+  justify-self: end;
+  width: 10px;
+  height: 1px;
+  background: currentColor;
+  transition: width 0.4s ease;
+}
+
+.markerActive {
+  color: $color-text;
+
+  .tick {
+    width: 22px;
+    background: $color-accent;
+  }
+}
+
+@media (max-width: 900px) {
+  .rail {
+    display: none;
+  }
+}

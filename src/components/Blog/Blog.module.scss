@@ -1,0 +1,552 @@
+@use "../../styles/tokens" as *;
+
+// A light, Medium-style reading surface that spans the full screen width: a full-bleed
+// title band, then the article body beside an "On this page" sidebar.
+$paper: #ffffff;
+$band: #f7f7f5;
+$ink: #242424;
+$ink-muted: #6b6b6b;
+$rule: #f0f0f0;
+$rule-strong: #e6e6e6;
+$link: #1a5fb4;
+$page-max: 1440px;
+$font-reading: var(--font-reading), Georgia, Cambria, "Times New Roman", serif;
+
+// ---------- Page frame ----------
+
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: $paper;
+  color: $ink;
+}
+
+.main {
+  flex: 1;
+  width: 100%;
+  // Clears the fixed header; each section manages its own horizontal padding.
+  padding-top: 69px;
+}
+
+.footer {
+  padding: 32px $gutter 40px;
+  border-top: 1px solid $rule;
+  text-align: center;
+  font-size: 14px;
+  color: $ink-muted;
+
+  a {
+    color: inherit;
+
+    &:hover,
+    &:focus-visible {
+      color: $ink;
+    }
+  }
+}
+
+// Focus rings on white need a darker color than the journey's pale accent.
+.shell :focus-visible {
+  outline-color: $link;
+}
+
+// ---------- Full-width title band ----------
+
+.hero {
+  width: 100%;
+  background: $band;
+  border-bottom: 1px solid $rule-strong;
+}
+
+.heroInner {
+  max-width: $page-max;
+  margin: 0 auto;
+  padding: 56px $gutter 48px;
+}
+
+.heroLede {
+  margin-top: 18px;
+  max-width: 900px;
+  font-family: $font-reading;
+  font-size: clamp(19px, 1.6vw, 23px);
+  line-height: 1.5;
+  color: $ink-muted;
+}
+
+// ---------- Shared type ----------
+
+.eyebrow {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: $ink-muted;
+}
+
+.title {
+  margin-top: 12px;
+  font-size: clamp(40px, 6vw, 64px);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 14px;
+  color: $ink-muted;
+}
+
+.draftBadge {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #fff4e5;
+  color: #8a4b00;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.tags {
+  margin-top: 20px;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  li {
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: #ebebe8;
+    font-size: 13px;
+    color: $ink;
+  }
+}
+
+// ---------- Index ----------
+
+.listLayout {
+  max-width: $page-max;
+  margin: 0 auto;
+  padding: 48px $gutter 96px;
+}
+
+.empty {
+  color: $ink-muted;
+}
+
+.postGrid {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  gap: 24px;
+}
+
+.postCard {
+  position: relative;
+  height: 100%;
+  padding: 28px;
+  border: 1px solid $rule-strong;
+  border-radius: 8px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+
+  &:hover {
+    border-color: #cfcfcf;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+  }
+}
+
+.postCardTitle {
+  margin-top: 12px;
+  font-size: clamp(22px, 2vw, 26px);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.postCardLink {
+  text-decoration: none;
+
+  // Stretch the link over the whole card so the card is one target.
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+  }
+
+  &:focus-visible {
+    outline: none;
+
+    &::after {
+      outline: 2px solid $link;
+      outline-offset: 2px;
+    }
+  }
+}
+
+.postCardDescription {
+  margin-top: 10px;
+  font-family: $font-reading;
+  font-size: 18px;
+  line-height: 1.55;
+  color: $ink-muted;
+}
+
+// ---------- Article ----------
+
+.back {
+  display: inline-flex;
+  gap: 6px;
+  margin-bottom: 28px;
+  font-size: 14px;
+  color: $ink-muted;
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    color: $ink;
+  }
+}
+
+.articleTitle {
+  margin-top: 14px;
+  max-width: 1100px;
+  font-size: clamp(34px, 4.6vw, 58px);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+}
+
+// Body and sidebar span the page; the body grows with the screen.
+.articleLayout {
+  max-width: $page-max;
+  margin: 0 auto;
+  padding: 56px $gutter 96px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 72px;
+  align-items: start;
+}
+
+.articleMain {
+  min-width: 0;
+}
+
+.toc {
+  position: sticky;
+  top: 101px;
+  padding-left: 24px;
+  border-left: 1px solid $rule-strong;
+}
+
+.tocTitle {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $ink-muted;
+}
+
+.tocList {
+  margin-top: 14px;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+
+  a {
+    display: block;
+    font-size: 15px;
+    line-height: 1.4;
+    color: $ink-muted;
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      color: $ink;
+    }
+  }
+}
+
+.articleFooter {
+  margin-top: 64px;
+  padding-top: 24px;
+  border-top: 1px solid $rule-strong;
+  font-size: 16px;
+  color: $ink-muted;
+
+  a {
+    color: $ink;
+  }
+}
+
+// ---------- Prose (rendered MDX) ----------
+
+.prose {
+  font-family: $font-reading;
+  font-size: 21px;
+  line-height: 1.65;
+  letter-spacing: -0.003em;
+  color: $ink;
+
+  > :first-child {
+    margin-top: 0;
+  }
+
+  > * + * {
+    margin-top: 1.5em;
+  }
+
+  h2,
+  h3 {
+    font-family: $font-body;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    scroll-margin-top: 96px;
+  }
+
+  h2 {
+    margin-top: 2.2em;
+    font-size: 30px;
+    line-height: 1.25;
+  }
+
+  h3 {
+    margin-top: 1.8em;
+    font-size: 23px;
+    line-height: 1.35;
+  }
+
+  h2 + *,
+  h3 + * {
+    margin-top: 0.6em;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: rgba(36, 36, 36, 0.4);
+    text-underline-offset: 3px;
+
+    &:hover {
+      text-decoration-color: $ink;
+    }
+  }
+
+  strong {
+    font-weight: 600;
+  }
+
+  ul,
+  ol {
+    padding-left: 1.5em;
+  }
+
+  li {
+    padding-left: 0.2em;
+  }
+
+  li + li {
+    margin-top: 0.6em;
+  }
+
+  blockquote {
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 24px;
+    border-left: 3px solid $ink;
+    font-size: 1.15em;
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  hr {
+    margin: 2.6em 0;
+    border: 0;
+    text-align: center;
+
+    &::before {
+      content: "···";
+      letter-spacing: 0.6em;
+      color: $ink-muted;
+    }
+  }
+
+  // Inline code
+  :not(pre) > code {
+    padding: 0.12em 0.36em;
+    border-radius: 4px;
+    background: #f2f2f2;
+    font-family: $font-mono;
+    font-size: 0.8em;
+  }
+
+  // Code blocks (rehype-pretty-code)
+  figure[data-rehype-pretty-code-figure] {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  [data-rehype-pretty-code-title] {
+    padding: 8px 18px;
+    border: 1px solid $rule-strong;
+    border-bottom: 0;
+    border-radius: 6px 6px 0 0;
+    background: #fafafa;
+    font-family: $font-mono;
+    font-size: 13px;
+    color: $ink-muted;
+
+    + pre {
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+  }
+
+  pre {
+    overflow-x: auto;
+    padding: 18px 0;
+    border: 1px solid $rule-strong;
+    border-radius: 6px;
+    background: #f6f8fa;
+    font-size: 15px;
+    line-height: 1.6;
+
+    code {
+      display: grid;
+      font-family: $font-mono;
+    }
+  }
+
+  [data-line] {
+    padding: 0 20px;
+  }
+
+  [data-highlighted-line] {
+    background: rgba(26, 95, 180, 0.08);
+    box-shadow: inset 3px 0 0 $link;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: $font-body;
+    font-size: 17px;
+    line-height: 1.5;
+  }
+
+  th,
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid $rule-strong;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    font-weight: 600;
+    border-bottom-color: $ink;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+  }
+}
+
+.callout {
+  padding: 20px 24px;
+  border-left: 3px solid $link;
+  border-radius: 0 6px 6px 0;
+  background: #f4f8fd;
+  font-size: 19px;
+
+  > * + * {
+    margin-top: 0.7em;
+  }
+}
+
+.calloutTitle {
+  font-family: $font-body;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $link;
+}
+
+// ---------- Smaller screens ----------
+
+// Not enough room for the sidebar: the body takes the whole width.
+@media (max-width: 1080px) {
+  .articleLayout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .toc {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .main {
+    padding-top: 57px;
+  }
+
+  .heroInner {
+    padding: 36px $gutter-mobile 32px;
+  }
+
+  .listLayout,
+  .articleLayout {
+    padding: 32px $gutter-mobile 72px;
+  }
+
+  .footer {
+    padding-left: $gutter-mobile;
+    padding-right: $gutter-mobile;
+  }
+
+  .postCard {
+    padding: 22px;
+  }
+
+  .prose {
+    font-size: 18px;
+    line-height: 1.6;
+
+    h2 {
+      font-size: 24px;
+    }
+
+    h3 {
+      font-size: 20px;
+    }
+
+    pre {
+      font-size: 13px;
+    }
+
+    [data-line] {
+      padding: 0 16px;
+    }
+
+    // Tables scroll sideways on phones instead of squeezing.
+    table {
+      display: block;
+      overflow-x: auto;
+      font-size: 15px;
+    }
+  }
+}

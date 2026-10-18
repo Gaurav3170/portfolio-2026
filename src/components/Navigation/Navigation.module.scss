@@ -1,0 +1,128 @@
+@use "../../styles/tokens" as *;
+
+// Colors come from custom properties so the light reading pages can retheme the header
+// (and the compact resume link inside it) without duplicating every rule.
+.header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px $gutter;
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
+}
+
+// Reading pages: a solid white bar across the full width, like a printed page header.
+.headerLight {
+  --nav-fg: #242424;
+  --nav-muted: #6b6b6b;
+  --nav-rule: rgba(0, 0, 0, 0.2);
+  --nav-bg: #ffffff;
+  padding-top: 16px;
+  padding-bottom: 16px;
+  background: #ffffff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.skipLink {
+  position: absolute;
+  left: $gutter;
+  top: -60px;
+  padding: 10px 16px;
+  background: $color-text;
+  color: $color-bg;
+  border-radius: 4px;
+  font-size: 14px;
+  text-decoration: none;
+
+  &:focus-visible {
+    top: 16px;
+  }
+}
+
+.monogram {
+  font-family: $font-display;
+  font-size: 22px;
+  letter-spacing: 0.04em;
+  color: var(--nav-fg, #{$color-text});
+  text-decoration: none;
+}
+
+.list {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 3vw, 36px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  position: relative;
+  padding: 6px 0;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--nav-muted, #{$color-text-muted});
+  text-decoration: none;
+  transition: color 0.3s ease;
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s ease;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: var(--nav-fg, #{$color-text});
+  }
+}
+
+.linkActive {
+  color: var(--nav-fg, #{$color-text});
+
+  &::after {
+    transform: scaleX(1);
+  }
+}
+
+@media (max-width: 560px) {
+  .header {
+    padding: 16px $gutter-mobile;
+  }
+
+  .headerLight {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .list {
+    gap: 10px;
+  }
+
+  .link {
+    font-size: 10px;
+    letter-spacing: 0.06em;
+  }
+}
+
+// On the narrowest phones the monogram already links to About, so drop the text link
+// rather than let the bar overflow the screen.
+@media (max-width: 400px) {
+  .list > li:first-child {
+    display: none;
+  }
+}

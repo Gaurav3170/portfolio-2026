@@ -1,0 +1,136 @@
+---
+title: "Doubling checkout throughput under peak load without adding a single server"
+description: "Our online store slowed to a crawl on its busiest days. The fix wasn't more servers. It was finding the work we didn't need to do, and stopping it."
+date: "2026-10-18"
+tags: ["Performance", "Reliability", "Web Engineering"]
+draft: false
+---
+
+Every online store has a few days a year that matter more than all the others: big sales, festive seasons, month-end rushes. Those are the days when the most people try to buy, and they're exactly the days a website is most likely to slow down or fall over.
+
+Ours had that problem. On a normal day, pages loaded quickly. On a busy one, updating a shopping cart could take **over thirty seconds instead of one**, and some of the machines running the site restarted in the middle of people's checkouts.
+
+This is the story of how we fixed it. The short version: **in the same stress test, on the same hardware, the number of completed orders roughly doubled.** We didn't buy more servers. Almost every fix was about _removing_ work, not adding it.
+
+## How the site works, in one paragraph
+
+When you open a product page or update your cart, your browser doesn't talk directly to the store's main system. It talks to a layer of small services in between, each responsible for one area, such as the cart, your account or your orders. Those services gather what's needed from several other systems (prices, stock, your details, page content), put it together, and send it back. That middle layer is where we found almost every problem.
+
+## Step one: recreate the busy day
+
+You can't fix a rush-hour problem by testing at 3 a.m. Our performance team runs a stress test that simulates thousands of shoppers browsing, adding to cart and checking out at the same time, for about ninety minutes. The number we cared about most was simple: **how many orders made it all the way through?**
+
+We kept the hardware exactly the same between runs, so any change in that number came from our changes and nothing else.
+
+| Stress test | Website orders completed |
+| --- | --- |
+| Before the changes | baseline |
+| After the first round of fixes | almost 2× |
+| After all the fixes | a little over 2× |
+
+The mobile app uses a different path that we didn't touch, and its order count stayed flat across every run. That gave us a built-in control: the improvement wasn't luck or a quieter test.
+
+## Step two: follow one slow request
+
+Next, we used monitoring tools that record every step a single request takes, a bit like a delivery tracking page for one click. We looked at a slow cart update, step by step.
+
+What we saw was strange. The request depended on three different outside systems, and **all three looked slow at the same time**. These systems had nothing to do with each other. If one of them were struggling, only its step would be slow.
+
+The one thing all three steps had in common was _our_ service in the middle. When we checked the main store system's own records, it had done its part in under two seconds. Our service had been sitting on the answer for more than ten.
+
+<Callout title="Why one busy service slows everything down">
+The kind of service we run handles many customers at once, but it does its actual thinking one task at a time. Picture a single cashier serving a long queue very quickly. If that cashier stops to fill in a long form for one customer, everyone behind them waits, even if what they want is ready. Under heavy traffic, those small pauses pile up.
+</Callout>
+
+So the goal wasn't to make any one system faster. It was to find everything our service was doing that it didn't need to do, and stop doing it.
+
+## What we found
+
+### 1. A step that ran for everyone, but was needed by almost no one
+
+Every cart action, every checkout step and every page view was first fetching a security pass from another system. Only one rarely used feature actually needed that pass.
+
+It was also supposed to remember the pass and reuse it, but because of the order in which things were set up, it never found the saved copy. So it asked again, every single time. On busy days that one unnecessary step took several seconds of every cart update.
+
+**The fix:** only fetch the pass for the one feature that needs it, and arrange things so the saved copy is actually found. This was the single biggest improvement.
+
+### 2. Writing a diary nobody was reading
+
+Software keeps logs, records of what happened, so engineers can investigate problems. That's useful in moderation. But our services were writing down the **entire contents** of every cart and every response, on every request, in every environment, including the live site. A setting meant for troubleshooting had been left switched on.
+
+That's like a shop assistant photocopying every receipt three times before handing it over. Each copy is quick, but across thousands of customers it adds up to a lot of time. One service alone was writing gigabytes of text an hour that nobody ever read.
+
+**The fix:** record only short, useful facts by default (what happened, how long it took, whether it worked) and keep the detailed records for when someone is actively investigating. As a bonus, logs no longer contain personal details, which is much safer.
+
+### 3. Hanging up after every call
+
+Our services talk to other systems constantly. Each time, they were setting up a brand-new secure connection, using it once, and closing it. Setting up a secure connection takes several back-and-forth messages before any useful work happens.
+
+Imagine phoning a colleague, introducing yourself, asking one question, hanging up, then calling back thirty seconds later and introducing yourself again. **Keeping the line open and reusing it** removed that overhead entirely. In one quick check, the same 50 requests needed 10 connections instead of 50.
+
+We also put a sensible **cap** on how many connections each service can open at once. Without one, a traffic spike could open thousands of connections, and the systems on the other end would start turning requests away, making everything slower.
+
+### 4. Waiting forever
+
+Some requests had no time limit. If another system stopped responding, our service would wait, and keep waiting. Each waiting request held on to memory, and under heavy traffic thousands of them piled up until the machine ran out of memory and restarted, taking everyone else's requests down with it.
+
+A few requests could also get stuck in a state where they would never finish, even if nothing was wrong elsewhere.
+
+**The fixes:**
+
+- Every outside call now has a sensible time limit. If something is down, the customer gets a clear error quickly instead of an endless spinner.
+- Every request is guaranteed to finish one way or another.
+- We stopped retrying requests that had timed out. Retrying a system that's already overloaded just adds to its load.
+- We never automatically retry actions like cancelling an order or submitting a return. If the first attempt actually worked, a retry could do it twice.
+
+### 5. Doing things one at a time that could happen together
+
+When building a page, our system collected several independent pieces of information (page content, account details and a form template) one after another. None of them depended on the others.
+
+It's like a waiter going to the kitchen for your starter, coming back, going again for your drink, then again for the bread. Fetching them **at the same time** meant the page waited only for the slowest piece, not all of them added together. If one non-essential piece failed, the page now loads without it instead of failing completely.
+
+One of those pieces was identical for every visitor, yet it was fetched fresh for every single page view. We now keep a copy for a few minutes and share it. And when that copy expires, the first visitor fetches a new one while everyone else waits for that same answer, instead of hundreds of visitors all asking at once.
+
+<Callout title="The one rule about sharing saved copies">
+Only share information that is the same for everyone, like page content or a form template. Never share anything personal. A saved copy that accidentally contains one customer's details would show them to the next customer.
+</Callout>
+
+### 6. A mix-up we found along the way
+
+This one wasn't on anyone's list. While reading through the code, we noticed that two services kept "who is the current customer" in a single shared place. With many customers being served at the same moment, one person's request could, in the wrong split second, pick up a different person's account details.
+
+It's like a busy restaurant writing table numbers on one shared whiteboard instead of on each order: most of the time it works, until two orders come in at once.
+
+**The fix:** each request now carries its own customer details with it from start to finish, so it can never be confused with anyone else's. We tested it with dozens of overlapping requests from different customers and saw zero mix-ups. This was the most important fix we made, even though it barely affected speed.
+
+### 7. Stopping the restarts
+
+Some machines weren't just slow, they were crashing and restarting. Each restart cut off every customer being served on that machine. The causes were small and repetitive:
+
+- **Unexpected empty data.** When another system sent back "nothing" where a list was expected, the code didn't handle it and crashed.
+- **Unusual error codes** that the service couldn't pass on properly, which caused a crash while trying to report an error.
+- **Downloads with no plan for a dropped connection.** If the connection broke halfway through a file download, the service crashed instead of giving up gracefully.
+- **No polite shutdown.** When we released updates, machines were switched off mid-request. Now they stop accepting new customers, finish serving the current ones, and then shut down.
+
+We also added a safety net, so one bad request gets logged and handled instead of bringing down the whole machine.
+
+## Making sure it stays fast
+
+Performance work quietly undoes itself. A few months later, a new feature adds one more unnecessary step, someone switches on detailed logging to investigate a bug and forgets to switch it off, and you're back where you started.
+
+So the last part of the project was writing short **guidelines and a review checklist** for the team, based on what we'd actually found. For example:
+
+- Don't make every request do work that only one feature needs.
+- Every call to another system needs a time limit and a plan for when it fails.
+- Fetch independent things together, not one after another.
+- Keep logs short, and never record personal details.
+- Only share saved information that's the same for everyone.
+- Check the speed of the affected pages before and after every significant change.
+
+## What I'd tell anyone facing the same problem
+
+1. **Test under real pressure.** Almost none of these problems showed up on a quiet day.
+2. **When unrelated things slow down together, look at what they have in common.** For us, that was our own service in the middle.
+3. **Remove work before you optimize it.** The biggest wins came from deleting things: an unnecessary step, excessive logging, repeated setup.
+4. **Put a limit on everything.** Time, connections, retries, file sizes. Things without limits are what turn a busy day into an outage.
+5. **Write it down.** The fixes gave us the improvement. The checklist is what keeps it.

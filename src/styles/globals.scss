@@ -1,0 +1,76 @@
+@use "tokens" as *;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: $color-bg;
+  color-scheme: dark;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: $color-bg;
+  color: $color-text;
+  font-family: $font-body;
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+p,
+ul,
+ol {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid $color-accent;
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+::selection {
+  background: rgba(184, 205, 245, 0.3);
+}
+
+// The blog is a light reading surface; keep overscroll and scrollbars matching it.
+html:has([data-surface="paper"]) {
+  background: #ffffff;
+  color-scheme: light;
+}
+
+// Revealed content must stay visible if JavaScript never runs.
+html:not(.js) [data-reveal] {
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

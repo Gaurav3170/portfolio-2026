@@ -1,0 +1,16 @@
+// Design tokens shared by every module.
+$color-bg: #04060c;
+$color-text: #eef1f7;
+$color-text-muted: #9aa3b6; // 7.6:1 on $color-bg
+$color-text-faint: #7d869a; // 5.3:1 on $color-bg — still AA for body text
+$color-accent: #b8cdf5;
+$color-accent-warm: #f0b36a;
+$color-rule: rgba(238, 241, 247, 0.14);
+
+$font-display: var(--font-display), "Times New Roman", serif;
+$font-body: var(--font-body), "Segoe UI", system-ui, sans-serif;
+$font-mono: var(--font-mono), ui-monospace, "Cascadia Code", monospace;
+
+$gutter: clamp(24px, 6vw, 96px);
+$gutter-mobile: 20px;
+$content-width: 620px;

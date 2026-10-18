@@ -1,0 +1,45 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+// Static stand-in shown before the scene loads, without WebGL, and on the server.
+.fallback {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 38%, rgba(120, 150, 210, 0.16), transparent 70%),
+    linear-gradient(180deg, #04060c 0%, #070a14 55%, #0a090b 100%);
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1.4s ease;
+
+  canvas {
+    display: block;
+  }
+}
+
+.canvasReady {
+  opacity: 1;
+}
+
+// Darkens the edges so text panels always sit on calm, high-contrast space.
+.vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 120% 90% at 50% 50%, transparent 45%, rgba(2, 3, 7, 0.75) 100%),
+    linear-gradient(90deg, rgba(3, 4, 8, 0.7) 0%, transparent 46%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas {
+    transition: none;
+  }
+}

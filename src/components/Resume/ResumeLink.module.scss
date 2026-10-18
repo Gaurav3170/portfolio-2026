@@ -1,0 +1,101 @@
+@use "../../styles/tokens" as *;
+
+.primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 26px 14px 18px;
+  border: 1px solid rgba(238, 241, 247, 0.32);
+  border-radius: 999px;
+  color: $color-text;
+  text-decoration: none;
+  background: rgba(4, 6, 12, 0.55);
+  transition:
+    background-color 0.35s ease,
+    border-color 0.35s ease,
+    color 0.35s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: $color-text;
+    border-color: $color-text;
+    color: $color-bg;
+
+    .meta {
+      color: rgba(4, 6, 12, 0.7);
+    }
+
+    .icon {
+      transform: translateY(2px);
+    }
+  }
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  transition: transform 0.35s ease;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.25;
+}
+
+.label {
+  font-size: 15px;
+  letter-spacing: 0.02em;
+}
+
+.meta {
+  font-family: $font-mono;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: $color-text-muted;
+  transition: color 0.35s ease;
+}
+
+// Sits in the navigation, so it follows the header's --nav-* colors when they're set.
+.compact {
+  padding: 6px 14px;
+  border: 1px solid var(--nav-rule, rgba(238, 241, 247, 0.32));
+  border-radius: 999px;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--nav-fg, #{$color-text});
+  text-decoration: none;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--nav-fg, #{$color-text});
+    color: var(--nav-bg, #{$color-bg});
+  }
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .compact {
+    padding: 5px 10px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+  }
+}
