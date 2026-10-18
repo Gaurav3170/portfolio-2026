@@ -1,5 +1,5 @@
 /** Identifies which 3D environment renders behind a chapter. */
-export type SceneId = "present" | "staff" | "associate" | "senior" | "beginning" | "next";
+export type SceneId = "present" | "staff" | "associate" | "senior" | "beginning" | "projects" | "next";
 
 /** A month/year pair. `null` as an end date means "present". */
 export interface CareerDate {
@@ -20,6 +20,32 @@ export interface Experience {
   narrative: string;
   highlights: string[];
   stack: string[];
+}
+
+/** A measured result shown on a project, e.g. { value: "147 kB", label: "First Load JS" }. */
+export interface ProjectMetric {
+  value: string;
+  label: string;
+}
+
+export interface ProjectLink {
+  label: string;
+  /** Absolute URL for external links, a path for pages on this site. */
+  href: string;
+}
+
+export interface Project {
+  id: string;
+  title: string;
+  /** One or two sentences: what it is. */
+  summary: string;
+  /** How it was built, one decision per line. */
+  highlights: string[];
+  metrics: ProjectMetric[];
+  /** Where the metrics come from, so every number can be checked. */
+  metricsNote: string;
+  stack: string[];
+  links: ProjectLink[];
 }
 
 export interface ContactLink {

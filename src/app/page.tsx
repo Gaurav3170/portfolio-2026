@@ -2,6 +2,7 @@ import { experiences } from "@/data/career";
 import { Contact } from "@/components/Chapters/Contact";
 import { ExperienceChapter } from "@/components/Chapters/ExperienceChapter";
 import { Intro } from "@/components/Chapters/Intro";
+import { Projects } from "@/components/Chapters/Projects";
 import { JourneyBackdrop } from "@/components/Journey/JourneyBackdrop";
 import { ScrollDriver } from "@/components/Journey/ScrollDriver";
 import { ChapterRail } from "@/components/Navigation/ChapterRail";
@@ -29,7 +30,7 @@ export default function HomePage() {
             variant={experience.sceneId === "beginning" ? "beginning" : "default"}
           />
         ))}
-        {/* TODO(projects): render <Projects /> here; add its chapter in data/career.ts. */}
+        <Projects />
         <Contact />
       </main>
     </>

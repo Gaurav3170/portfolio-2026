@@ -2,7 +2,7 @@ import { profile } from "@/data/career";
 import { ResumeLink } from "@/components/Resume/ResumeLink";
 import styles from "./Chapters.module.scss";
 
-/** Scene 5 — the next chapter. */
+/** Scene 7 — the next chapter. */
 export function Contact() {
   return (
     <section id="contact" className={`${styles.chapter} ${styles.contact}`} aria-labelledby="contact-title">
@@ -33,10 +33,6 @@ export function Contact() {
             </li>
           ))}
         </ul>
-        {/* Reserved: the projects chapter will be inserted before this section. */}
-        <p className={styles.reserved} data-reveal>
-          Selected projects — coming soon.
-        </p>
       </div>
       <footer className={styles.footer}>
         <p>

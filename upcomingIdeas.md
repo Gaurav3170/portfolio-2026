@@ -18,13 +18,13 @@ The plan for the Projects and Blog sections, in the order to build them. Pick th
 
 Status: ☐ not started · ◐ in progress · ☑ shipped
 
-### 1. ☐ This portfolio
+### 1. ☑ This portfolio
 
 The site itself: a scroll-driven 3D journey built with Next.js, React Three Fiber and GSAP, with server-rendered content and a fast reading blog.
 
-- **Why first:** it already exists, so it's the cheapest project to ship.
-- **Show:** how the 3D scene stays fast (code-split canvas, lighter scene on weak devices, no WebGL fallback, reduced-motion support) and the Core Web Vitals numbers.
-- **To do:** add the `projects` chapter to the scroll journey (see "Adding the projects section later" in `README.md`), then make this the first entry.
+- **Shipped:** `projects` chapter in the scroll journey with this as the first entry; measurements in `README.md` ("Measurements").
+- **Result:** shader warm-up took desktop Lighthouse Performance from 74 to 98 and blocking time from 647 ms to 115 ms (medians of five runs).
+- **Follow-up:** mobile scores 68; remaining blocking time is hydration and GSAP setup. Good material for the "one short post per shipped project" idea below.
 - **Pairs with:** blog #2.
 
 ### 2. ☐ Perf Budget Guard

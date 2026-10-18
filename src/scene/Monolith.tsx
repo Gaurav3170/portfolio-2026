@@ -3,8 +3,8 @@
 import { zoneZ } from "./config";
 
 /**
- * The closing scene: one calm, unfinished monolith. Its open top marks the space
- * reserved for the future projects chapter.
+ * The closing scene: one calm, unfinished monolith. Its open top marks the work
+ * still to be built.
  */
 export function Monolith() {
   // Set well back and off-axis so it frames the closing text instead of cutting through it.

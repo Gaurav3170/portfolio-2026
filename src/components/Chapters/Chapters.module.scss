@@ -217,6 +217,95 @@
   }
 }
 
+// ---------- Projects ----------
+
+.projectList {
+  margin-top: 44px;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 56px;
+}
+
+.project {
+  padding-top: 28px;
+  border-top: 1px solid $color-rule;
+}
+
+.projectTitle {
+  font-family: $font-display;
+  font-weight: 400;
+  font-size: clamp(28px, 3.4vw, 40px);
+  line-height: 1.1;
+}
+
+.projectSummary {
+  margin-top: 14px;
+  font-size: 17px;
+  color: $color-text;
+}
+
+.metrics {
+  margin: 28px 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 20px 28px;
+
+  dd {
+    margin: 0;
+  }
+}
+
+.metric {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 4px;
+
+  dt {
+    font-family: $font-mono;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: $color-text-muted;
+  }
+
+  dd {
+    font-family: $font-display;
+    font-size: 34px;
+    line-height: 1;
+    color: $color-accent;
+  }
+}
+
+.metricsNote {
+  margin-top: 14px;
+  font-size: 13px;
+  color: $color-text-faint;
+}
+
+.projectLinks {
+  margin-top: 22px;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+}
+
+.projectLink {
+  display: inline-block;
+  padding: 6px 0;
+  font-size: 15px;
+  text-decoration: none;
+  border-bottom: 1px solid $color-rule;
+  transition: border-color 0.3s ease;
+
+  &:hover,
+  &:focus-visible {
+    border-color: $color-text;
+  }
+}
+
 // ---------- Contact ----------
 
 // Exactly one viewport tall, so at the end of the page the whole scene is in view
@@ -286,15 +375,6 @@
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: $color-text-muted;
-}
-
-.reserved {
-  margin-top: 56px;
-  font-family: $font-mono;
-  font-size: 12px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: $color-text-faint;
 }
 
 .footer {

@@ -13,7 +13,7 @@ import styles from "./Navigation.module.scss";
 const links = [
   { href: "#intro", label: "About", ids: ["intro"] },
   { href: "#staff", label: "Experience", ids: ["staff", "associate", "senior", "infosys"] },
-  // TODO(projects): add { href: "#projects", label: "Projects", ids: ["projects"] } when the section ships.
+  { href: "#projects", label: "Projects", ids: ["projects"] },
   { href: "/blog", label: "Blog", ids: [] },
   { href: "#contact", label: "Contact", ids: ["contact"] },
 ];

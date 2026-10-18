@@ -19,11 +19,22 @@ export function JourneyBackdrop() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (!supportsWebGL()) {
-      setMode({ kind: "fallback" });
-      return;
+    // Wait until the browser is idle after hydration, so creating the WebGL context
+    // never competes with the first interactions on the page.
+    const start = () => {
+      if (!supportsWebGL()) {
+        setMode({ kind: "fallback" });
+        return;
+      }
+      setMode({ kind: "webgl", quality: detectQuality(), reducedMotion: prefersReducedMotion() });
+    };
+    // Safari has no requestIdleCallback; a short timeout gets most of the same benefit.
+    if (typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(start, { timeout: 2000 });
+      return () => window.cancelIdleCallback(id);
     }
-    setMode({ kind: "webgl", quality: detectQuality(), reducedMotion: prefersReducedMotion() });
+    const id = window.setTimeout(start, 200);
+    return () => window.clearTimeout(id);
   }, []);
 
   return (

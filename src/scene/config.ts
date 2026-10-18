@@ -17,7 +17,8 @@ export const zoneZ: Record<SceneId, number> = {
   associate: -ZONE_SPACING * 2,
   senior: -ZONE_SPACING * 3,
   beginning: -ZONE_SPACING * 4,
-  next: -ZONE_SPACING * 5,
+  projects: -ZONE_SPACING * 5,
+  next: -ZONE_SPACING * 6,
 };
 
 /** Lateral sway per chapter, so the camera drifts through space instead of on rails. */
@@ -27,6 +28,7 @@ const sway: Record<SceneId, [number, number]> = {
   associate: [-1.8, 0.9],
   senior: [1.4, 0.3],
   beginning: [-1.0, 1.3],
+  projects: [1.2, 0.6],
   next: [0, 0.7],
 };
 
@@ -61,13 +63,17 @@ interface AtmosphereKey {
   blueprint: number;
 }
 
-/** Lighting and mood for each chapter, from cold and precise to warm and simple. */
+/**
+ * Lighting and mood for each chapter, from cold and precise to warm and simple. After the
+ * beginning, the projects zone turns cool again: work built today, from those first blueprints.
+ */
 const atmosphereKeys: Record<SceneId, AtmosphereKey> = {
   present: { background: "#04060c", fog: "#070b16", fogFar: 62, key: "#d4e2ff", keyIntensity: 1.5, accent: "#9fc2ff", blueprint: 0.18 },
   staff: { background: "#03050b", fog: "#060a14", fogFar: 56, key: "#dbe7ff", keyIntensity: 1.7, accent: "#a9c8ff", blueprint: 0.16 },
   associate: { background: "#050710", fog: "#080c18", fogFar: 62, key: "#c9d6f0", keyIntensity: 1.3, accent: "#93b3e6", blueprint: 0.24 },
   senior: { background: "#070810", fog: "#0b0d17", fogFar: 70, key: "#d4cfe4", keyIntensity: 1.05, accent: "#b8b2d8", blueprint: 0.34 },
   beginning: { background: "#0a090b", fog: "#110e0c", fogFar: 78, key: "#ffd9aa", keyIntensity: 0.7, accent: "#f0b36a", blueprint: 0.75 },
+  projects: { background: "#05070d", fog: "#090c15", fogFar: 74, key: "#dfe6f5", keyIntensity: 1.25, accent: "#a9c8ff", blueprint: 0.45 },
   next: { background: "#07080b", fog: "#0d0f14", fogFar: 92, key: "#f2eee8", keyIntensity: 0.95, accent: "#e8e2d6", blueprint: 0.3 },
 };
 
@@ -135,6 +141,7 @@ export const structureSpecs: StructureSpec[] = [
   { sceneId: "staff", seed: 23, arches: 12, panels: 26, glassOpacity: 0.2, spread: 10 },
   { sceneId: "associate", seed: 37, arches: 9, panels: 16, glassOpacity: 0.15, spread: 11 },
   { sceneId: "senior", seed: 53, arches: 7, panels: 4, glassOpacity: 0.08, spread: 11 },
+  { sceneId: "projects", seed: 71, arches: 5, panels: 10, glassOpacity: 0.14, spread: 10 },
 ];
 
 /** Corridor extent used by the floor grid and particles. */

@@ -6,6 +6,7 @@ import styles from "./ChapterRail.module.scss";
 
 const yearFor = (id: string): string => {
   if (id === "intro") return "Now";
+  if (id === "projects") return "Work";
   if (id === "contact") return "Next";
   const experience = experiences.find((item) => item.id === id);
   return experience ? String(experience.start.year) : "";

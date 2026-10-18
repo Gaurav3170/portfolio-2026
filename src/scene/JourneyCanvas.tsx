@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { ACESFilmicToneMapping, SRGBColorSpace } from "three";
 import type { QualityTier } from "@/lib/capabilities";
@@ -48,6 +48,32 @@ function AdaptiveResolution({ range }: { range: [number, number] }) {
   return null;
 }
 
+/**
+ * Compiles every shader before the first frame. A plain first render compiles them
+ * synchronously and blocks the main thread while the GPU driver links each program;
+ * compileAsync lets the driver work in parallel (KHR_parallel_shader_compile) while
+ * the page stays responsive. Rendered last, so its effect runs after the atmosphere
+ * has set the fog the shaders depend on.
+ */
+function ShaderWarmup({ onCompiled }: { onCompiled: () => void }) {
+  const gl = useThree((state) => state.gl);
+  const scene = useThree((state) => state.scene);
+  const camera = useThree((state) => state.camera);
+
+  useEffect(() => {
+    let cancelled = false;
+    const done = () => {
+      if (!cancelled) onCompiled();
+    };
+    // If warm-up fails, the first frame simply compiles synchronously as before.
+    gl.compileAsync(scene, camera).then(done, done);
+    return () => {
+      cancelled = true;
+    };
+  }, [gl, scene, camera, onCompiled]);
+  return null;
+}
+
 /** Fires once after the first frame is drawn, so the canvas can fade in. */
 function FirstFrame({ onReady }: { onReady?: () => void }) {
   const [done, setDone] = useState(false);
@@ -62,6 +88,8 @@ function FirstFrame({ onReady }: { onReady?: () => void }) {
 
 export default function JourneyCanvas({ quality, reducedMotion, onReady }: JourneyCanvasProps) {
   const [visible, setVisible] = useState(true);
+  const [compiled, setCompiled] = useState(false);
+  const onCompiled = useCallback(() => setCompiled(true), []);
   const density = quality === "high" ? 1 : 0.55;
 
   // Stop rendering entirely while the tab is hidden.
@@ -74,7 +102,7 @@ export default function JourneyCanvas({ quality, reducedMotion, onReady }: Journ
   return (
     <Canvas
       dpr={DPR[quality]}
-      frameloop={visible ? "always" : "never"}
+      frameloop={visible && compiled ? "always" : "never"}
       camera={{ fov: 50, near: 0.1, far: 140, position: [0, 0.4, 14] }}
       gl={{
         antialias: quality === "high",
@@ -99,6 +127,7 @@ export default function JourneyCanvas({ quality, reducedMotion, onReady }: Journ
       ))}
       <Blueprint />
       <Monolith />
+      <ShaderWarmup onCompiled={onCompiled} />
     </Canvas>
   );
 }

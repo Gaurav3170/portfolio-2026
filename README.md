@@ -22,8 +22,13 @@ Requires Node 18.17+. The project `.npmrc` pins the public npm registry.
 
 ## Editing content
 
-All career content lives in **`src/data/career.ts`** — name, intro, every role, highlights, stack and contact
-links. Components never hard-code career text.
+All career content lives in **`src/data/career.ts`** — name, intro, every role, highlights, stack, projects and
+contact links. Components never hard-code career text.
+
+### Adding a project
+
+Add an entry to `projects` in `src/data/career.ts`. Every project needs its source link, at least one post about
+how it was built, and metrics with a `metricsNote` saying how they were measured.
 
 ### Updating the resume download
 
@@ -54,6 +59,19 @@ draft: true               # drafts show in `npm run dev` only
   `sitemap.xml` use the real domain.
 
 ## Architecture
+
+```
+            Server (static HTML)                         Browser
+ ┌──────────────────────────────────┐   ┌───────────────────────────────────────────┐
+ │ data/career.ts ──► Chapters/*    │   │ ScrollDriver (GSAP ScrollTrigger)         │
+ │   every heading, link and line   │──►│   native scroll ──► journeyStore.progress │
+ │   of content, rendered at build  │   │                          │ read per frame │
+ └──────────────────────────────────┘   │ JourneyBackdrop          ▼                │
+                                        │   idle ──► import("scene/JourneyCanvas")  │
+                                        │            compileAsync ──► first frame   │
+                                        │            ──► fade in over the gradient  │
+                                        └───────────────────────────────────────────┘
+```
 
 ```
 src/
@@ -91,18 +109,36 @@ src/
 ### Performance and accessibility
 
 - Every heading, link and line of content is server-rendered HTML; the canvas is decoration (`aria-hidden`).
-- Three.js is code-split and loads after the content paints. First Load JS for `/` is ~138 kB.
+- Three.js is code-split and mounts when the browser is idle after the content paints. First Load JS for `/` is
+  147 kB; the scene adds ~211 kB (gzipped) afterwards.
+- Shaders compile with `compileAsync` (parallel, off the main thread) before the render loop starts, instead of
+  blocking the first frame.
 - Instanced geometry, no textures or model files, capped DPR, adaptive resolution when frame rate drops, and
   rendering pauses while the tab is hidden.
 - Phones and low-core devices get a lighter scene (fewer instances and particles, no antialiasing or parallax).
 - `prefers-reduced-motion`: the camera snaps instead of gliding, reveals are instant, particles stop drifting.
 - No WebGL: a static gradient backdrop with all the same content.
 
-## Adding the projects section later
+## Measurements
 
-1. Add a `projects` chapter to `chapters` in `src/data/career.ts`, before `contact`.
-2. Add a `projects` scene id and zone in `src/scene/config.ts`.
-3. Render a `<Projects />` section in `src/app/page.tsx` where the `TODO(projects)` comment is.
-4. Uncomment the Projects link in `src/components/Navigation/Navigation.tsx`.
+Lighthouse 12.8.2 against `npm run build && npm run start`, Chrome 155 headless on a Windows laptop with integrated
+Intel graphics (real GPU, not software WebGL). Median of five runs per form factor, October 2026.
 
-The camera path, atmosphere and chapter rail are all generated from `chapters`, so nothing else needs to change.
+| Home page                          | Before   | After shader warm-up |
+| ---------------------------------- | -------- | -------------------- |
+| Desktop Performance                | 74       | **98**               |
+| Desktop Total Blocking Time        | 647 ms   | **115 ms**           |
+| Mobile Performance                 | 55       | **68**               |
+| Mobile Total Blocking Time         | 2,968 ms | **1,233 ms**         |
+| Mobile LCP                         | 3.9 s    | **3.0 s**            |
+| Accessibility / Best Practices / SEO | 100 / 100 / 100 | 100 / 100 / 100 |
+
+**What changed:** a CPU profile showed 517 ms of main-thread time inside Three.js's shader link check, because the
+first frame waited for the GPU driver to compile every shader. Compiling with `compileAsync` before the render loop
+starts cut that to 7 ms; mounting the scene on `requestIdleCallback` keeps it clear of hydration.
+
+**What's left:** on mobile (simulated 4× CPU slowdown) the remaining blocking time is React hydration and GSAP
+ScrollTrigger setup, not the 3D scene.
+
+To reproduce, serve the production build and run
+`npx lighthouse http://localhost:3000/ --preset=desktop` (and again without `--preset` for mobile).
