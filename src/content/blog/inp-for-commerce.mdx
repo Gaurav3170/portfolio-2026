@@ -1,0 +1,88 @@
+---
+title: "INP for commerce: making taps and clicks feel instant"
+description: "Interaction to Next Paint measures how quickly a page responds when people tap, click or type. Online stores are full of interactions, so here's what slows them down and how to fix it."
+date: "2025-12-16"
+tags: ["Performance", "Core Web Vitals", "Commerce", "Frontend"]
+draft: false
+---
+
+Loading speed gets most of the attention, but there's another kind of slowness people notice even more: you tap "Add to cart" and nothing seems to happen. You tap again. Now there are two in your cart.
+
+That delay between an action and the screen responding is what **Interaction to Next Paint (INP)** measures. Since March 2024 it has been one of Google's Core Web Vitals, replacing an older metric that only looked at the very first interaction.
+
+Online stores are full of interactions (filters, size pickers, quantity buttons, search boxes, add to cart), which makes INP especially important for commerce.
+
+## What INP measures
+
+INP looks at the taps, clicks and key presses during a visit and reports roughly the slowest one: how long it took from the moment the person interacted until the screen visibly updated.
+
+Google's thresholds, measured for the 75th percentile of real visits:
+
+| INP | Rating |
+| --- | --- |
+| 200 ms or less | Good |
+| 200–500 ms | Needs improvement |
+| Over 500 ms | Poor |
+
+Each interaction has three parts:
+
+1. **Input delay:** the browser was busy with something else and couldn't start responding.
+2. **Processing:** your code reacting to the interaction.
+3. **Presentation:** the browser working out the new layout and drawing it.
+
+A slow interaction can come from any of the three, so it's worth knowing which one before you start fixing.
+
+## What slows down interactions on store pages
+
+### Updating far more than needed
+
+Choosing a filter on a product listing often re-renders the whole page: every product card, the header, the sidebar. The visitor only changed one checkbox, but the browser has to redo a lot of work before it can show anything.
+
+### Doing everything before showing anything
+
+A typical "Add to cart" click might update the cart, recalculate totals and promotions, send several analytics events and refresh recommendations, all before the button visibly changes. The visitor sees nothing until all of it is finished.
+
+### Third-party scripts competing for attention
+
+Analytics, tag managers, chat widgets, A/B testing tools and ads all run on the same main thread as your store. When one of them is busy, your interaction waits in line. That's input delay.
+
+### Very large pages
+
+A listing page with hundreds of detailed product cards gives the browser a lot to recalculate after every change.
+
+### Slow phones
+
+Most shoppers aren't on a high-end laptop. Something that takes 50 ms on a developer's machine can take several times longer on a mid-range phone.
+
+## How to improve it
+
+### Show the response first, do the work after
+
+The single most effective change: **update the screen immediately**, then do the heavy work. When someone taps "Add to cart", change the button to "Added", update the cart count, and only then handle the rest. Analytics can almost always wait a moment.
+
+### Break up long tasks
+
+If your code needs to do a lot of work, split it into smaller pieces and give the browser a chance to update the screen in between. The total work is the same, but the page responds much sooner.
+
+### Update less
+
+Make sure a filter change only updates the parts of the page that depend on it. For very long lists, render only what's visible, or show results in pages.
+
+### Load third-party scripts later
+
+Delay non-essential scripts until after the page is interactive, and question whether each one is still needed. Every script removed is attention your store gets back.
+
+### Keep pages lean
+
+Fewer elements on the page means less for the browser to recalculate. Simplify product cards, and avoid hiding large amounts of content that's still on the page.
+
+## How to measure it
+
+- **Start with real-user data.** INP is measured on real visits, so look at what your visitors actually experience, split by mobile and desktop.
+- **Find the slow interactions.** Field tools can tell you which interactions are slowest and on which pages.
+- **Reproduce on a slow device.** Use a mid-range phone, or slow down your computer's processor in the browser's developer tools, and repeat the interaction.
+- **Check which part is slow:** input delay, processing or presentation. The fix depends on it.
+
+## Why it matters
+
+A store can load quickly and still feel sluggish if every tap hesitates. Shoppers don't know what INP is, but they notice when a button doesn't respond, and some of them leave. Making interactions feel instant is one of the most direct ways to make a store feel trustworthy.

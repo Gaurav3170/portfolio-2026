@@ -1,0 +1,84 @@
+---
+title: "Upgrading 20+ repositories without breaking production"
+description: "Upgrading one app is a task. Upgrading twenty is a project. Here's the playbook I use for runtime and build-tool upgrades across many repositories."
+date: "2026-02-10"
+tags: ["Upgrades", "Node.js", "Build Tools", "Engineering Process"]
+draft: false
+---
+
+Upgrading the tools an app is built on is rarely exciting. A new runtime version, a new build tool, a new framework release. Done once, it's an afternoon. Done across twenty-plus repositories that together run a busy website, it's a project with real risk.
+
+I've led several of these: moving every service to a newer Node.js version, from proof of concept to production, and upgrading the build setup (Webpack 5 and Next.js 12, with a custom build configuration, a new Sass compiler and updated transpilation) across every micro-frontend on a platform. Here's the playbook I've settled on.
+
+## Why upgrades get harder at scale
+
+- **Every repository is slightly different.** Different dependencies, different scripts, different workarounds someone added years ago.
+- **Problems are uneven.** Fifteen repositories upgrade cleanly; five have something odd.
+- **Releases overlap.** Feature work doesn't stop for your upgrade.
+- **The risk is spread out.** One broken service is enough to break a customer journey.
+
+## Step 1: Prove it on one representative repository
+
+Pick a repository that's typical, not the easiest one. Upgrade it fully, run it the way it runs in production, and deploy it to a test environment.
+
+The goal isn't just "it works." It's to write down **every change you had to make**. That list becomes the recipe for the rest.
+
+## Step 2: Take inventory
+
+Before touching anything else, list every repository with:
+
+- Its current versions.
+- Anything known to block the upgrade: old libraries, custom build steps, unusual configuration.
+- Who owns it, and when it next releases.
+
+This turns an open-ended project into a checklist, and shows the risky repositories up front instead of halfway through.
+
+## Step 3: Write the recipe
+
+Turn the proof-of-concept notes into a short, step-by-step guide: what to change, what to check, what usually goes wrong and how to fix it. Every repository upgraded the same way is easier to review, easier to debug and easier to roll back.
+
+If the steps are repetitive enough, this is also the point where automation pays off, whether that's a script or an AI agent following the recipe, with a human reviewing each result.
+
+## Step 4: Roll out in waves
+
+Don't upgrade everything at once. Group repositories into waves:
+
+1. **Low-risk services first**, ones that are small or have little traffic.
+2. **Then the bulk**, using the refined recipe.
+3. **The critical paths last**, such as checkout and payments, when the recipe is proven.
+
+Each wave goes through lower environments before production, so a problem shows up in one wave, not across the whole site.
+
+## Step 5: Test the way the app really runs
+
+Unit tests passing isn't enough. Upgrades often break things that unit tests never touch:
+
+- The app failing to **start** because of how configuration is loaded.
+- A build that succeeds but produces **different output**, such as missing styles or a changed file name.
+- Behaviour that depends on **runtime defaults**.
+
+So each upgraded app should be started with production-like settings and taken through its main user journeys before it's called done.
+
+## Step 6: Watch for changed defaults
+
+The trickiest part of an upgrade is what changes without you touching it.
+
+A good example: older Node.js versions don't keep network connections open between requests by default, and newer ones do. That one default can change how a service behaves under load, for better or worse, without a single line of your code changing.
+
+Release notes are worth reading carefully for exactly this reason. The headline features rarely cause trouble. Changed defaults sometimes do.
+
+## Step 7: Watch production after each wave
+
+After each wave reaches production, check the basics: error rates, response times, memory use and restarts. Compare them with the week before. Keep the previous version ready to roll back quickly if something looks off.
+
+## Fix security issues along the way
+
+Upgrades are a natural moment to clear out known vulnerabilities in dependencies, since you're already touching versions and testing everything. It turns a maintenance project into a security win as well.
+
+## Communicate more than feels necessary
+
+- Tell teams **before** their repository is upgraded, and when.
+- Keep a simple tracker: which repositories are done, in progress or blocked.
+- Share what went wrong, so the next wave avoids it.
+
+Large upgrades fail less often from technical problems than from surprises. A clear plan, a written recipe and waves you can roll back turn a scary project into a routine one.

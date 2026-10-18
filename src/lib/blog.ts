@@ -14,6 +14,12 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const WORDS_PER_MINUTE = 220;
 const showDrafts = process.env.NODE_ENV !== "production";
 
+/**
+ * Today's date in India (YYYY-MM-DD). A post dated in the future stays hidden in
+ * production until a build runs on or after that date, so posts can be scheduled.
+ */
+const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
+
 /** Fails the build with a clear message instead of rendering a broken post. */
 function validate(data: Record<string, unknown>, file: string): PostFrontmatter {
   const fail = (message: string): never => {
@@ -88,14 +94,25 @@ function toMeta(post: Post): PostMeta {
   return { title, description, date, updated, tags, draft, slug, readingMinutes };
 }
 
+/** Drafts and scheduled (future-dated) posts show in development only. */
+function isVisible(post: Post, now: string): boolean {
+  return showDrafts || (!post.draft && post.date <= now);
+}
+
 function readPosts(): Post[] {
   if (!fs.existsSync(POSTS_DIR)) return [];
+  const now = today();
   return fs
     .readdirSync(POSTS_DIR)
     .filter((file) => file.endsWith(".mdx"))
     .map(readPost)
-    .filter((post) => showDrafts || !post.draft)
+    .filter((post) => isVisible(post, now))
     .sort((a, b) => b.date.localeCompare(a.date));
+}
+
+/** Whether a post's publish date is still ahead; used to label scheduled posts in development. */
+export function isScheduled(post: PostMeta): boolean {
+  return post.date > today();
 }
 
 /** Visible posts, newest first, without their bodies. */
@@ -103,7 +120,7 @@ export function getAllPosts(): PostMeta[] {
   return readPosts().map(toMeta);
 }
 
-/** Looks the slug up among visible posts, so drafts and stray paths 404 in production. */
+/** Looks the slug up among visible posts, so drafts, scheduled posts and stray paths 404 in production. */
 export function getPost(slug: string): Post | undefined {
   return readPosts().find((post) => post.slug === slug);
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { PostMeta } from "@/types/blog";
+import { isScheduled } from "@/lib/blog";
 import { formatPostDate } from "@/lib/format";
 import styles from "./Blog.module.scss";
 
@@ -19,6 +20,7 @@ export function PostList({ posts }: { posts: PostMeta[] }) {
               <span aria-hidden="true">·</span>
               <span>{post.readingMinutes} min read</span>
               {post.draft && <span className={styles.draftBadge}>Draft</span>}
+              {!post.draft && isScheduled(post) && <span className={styles.draftBadge}>Scheduled</span>}
             </p>
             <h2 className={styles.postCardTitle}>
               <Link href={`/blog/${post.slug}`} className={styles.postCardLink}>

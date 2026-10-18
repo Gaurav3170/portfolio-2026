@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { profile } from "@/data/career";
-import { getAllPosts, getPost } from "@/lib/blog";
+import { getAllPosts, getPost, isScheduled } from "@/lib/blog";
 import { formatPostDate } from "@/lib/format";
 import { siteUrl } from "@/lib/site";
 import { PostBody } from "@/components/Blog/PostBody";
@@ -29,7 +29,7 @@ export function generateMetadata({ params }: PostPageProps): Metadata {
     description: post.description,
     keywords: post.tags,
     alternates: { canonical: url },
-    robots: post.draft ? { index: false } : undefined,
+    robots: post.draft || isScheduled(post) ? { index: false } : undefined,
     openGraph: {
       title: post.title,
       description: post.description,
@@ -84,6 +84,9 @@ export default function PostPage({ params }: PostPageProps) {
               </>
             )}
             {post.draft && <span className={styles.draftBadge}>Draft — hidden in production</span>}
+            {!post.draft && isScheduled(post) && (
+              <span className={styles.draftBadge}>Scheduled — goes live {formatPostDate(post.date)}</span>
+            )}
           </p>
           <h1 className={styles.articleTitle}>{post.title}</h1>
           <p className={styles.heroLede}>{post.description}</p>

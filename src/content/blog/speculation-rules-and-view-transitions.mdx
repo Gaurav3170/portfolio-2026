@@ -1,0 +1,72 @@
+---
+title: "Speculation Rules and View Transitions: near-instant navigation for multi-page sites"
+description: "Two browser features can make a traditional multi-page website feel as smooth as an app: one loads the next page before you click, the other animates the change. Here's how they work and how to adopt them safely."
+date: "2026-06-16"
+tags: ["Performance", "Web Platform", "Commerce", "UX"]
+draft: false
+---
+
+Most online stores are still multi-page websites: click a product and the browser loads a whole new page. That's good for reliability and search engines, but it often feels slower than an app, where screens seem to switch instantly.
+
+Two newer browser features close much of that gap, without rebuilding your site:
+
+- **Speculation Rules** let the browser prepare the next page _before_ the visitor clicks.
+- **View Transitions** let the change from one page to the next animate smoothly instead of flashing.
+
+## Speculation Rules: loading the next page early
+
+The idea is simple. You tell the browser which pages the visitor is likely to open next, and it starts getting them ready in the background. When the visitor clicks, the page is already there.
+
+There are two levels of preparation:
+
+- **Prefetch:** download the page in advance. Clicking still has to build it, but the download wait is gone.
+- **Prerender:** fully build the page in a hidden background tab. Clicking simply reveals it, often instantly.
+
+You also choose **how eager** the browser should be, from preparing pages as soon as possible to only preparing a page when the visitor hovers over or starts to press its link. That last option is a good default: by the time someone's finger is on the link, they're very likely to click it.
+
+### Browser support
+
+Speculation Rules currently work in Chromium-based browsers such as Chrome and Edge. Other browsers simply ignore them, so visitors there get normal navigation. Nothing breaks.
+
+There are signs of wider support: the feature is part of Interop 2026, the browser makers' shared plan for consistency, and WebKit (Safari's engine) has been implementing it behind a flag. Even today it's a safe progressive enhancement: faster for many visitors, neutral for the rest.
+
+### Use it carefully
+
+Preparing pages nobody visits has costs, so a few rules matter:
+
+- **It uses bandwidth and server capacity.** Start with conservative eagerness and only the most likely next pages, such as product pages from a listing.
+- **Never speculate on pages that do something.** "Add to cart", "log out" or "remove item" links must never be prepared in advance.
+- **Check your analytics.** A prerendered page that's never shown shouldn't count as a page view. Make sure your tracking only counts pages that are actually displayed.
+- **Be careful with personal pages.** Cart and account pages change quickly, so a page prepared too early may be out of date.
+
+## View Transitions: a smooth handoff
+
+Even when the next page is ready instantly, a full page change can feel abrupt: the screen goes blank for a split second, then the new page appears.
+
+**View Transitions** let the browser animate between the old page and the new one. With a small amount of CSS, the outgoing page can fade into the next, and individual elements can move between them. For example, a product image on a listing can grow smoothly into the large image on the product page.
+
+### Browser support
+
+Transitions between separate pages are supported in Chrome from version 126 and Safari from 18.2. Firefox has added support for transitions within a single page, and its support for transitions between pages is still partial. Browsers without support simply change pages normally, so again, nothing breaks.
+
+### Use it carefully
+
+- **Keep animations short and subtle.** A transition should feel like continuity, not a performance.
+- **Respect reduced motion.** Visitors who've asked their device for less motion should get an instant change instead.
+- **Don't hide slowness behind animation.** A transition makes a fast navigation feel smooth. It can't make a slow one feel fast.
+
+## Better together
+
+Each feature helps on its own, but together they're powerful. Speculation Rules make the next page **ready**, and View Transitions make the change **smooth**. The result is a multi-page store that feels app-like, while keeping the reliability, accessibility and search-friendliness of ordinary pages.
+
+## A safe rollout plan
+
+1. **Measure today's navigation speed** on key journeys, such as listing to product page.
+2. **Add speculation for one safe journey**, using conservative eagerness.
+3. **Check the costs:** server load, bandwidth and analytics accuracy.
+4. **Widen it gradually** to other high-traffic journeys.
+5. **Add a simple cross-page transition**, with reduced-motion support.
+6. **Add element transitions** for key moments, like the product image.
+7. **Measure again** and compare.
+
+For most commerce sites, this is one of the best ratios of effort to perceived speed available today: a few lines of configuration, no rewrite, and navigation that feels close to instant for a large share of visitors.

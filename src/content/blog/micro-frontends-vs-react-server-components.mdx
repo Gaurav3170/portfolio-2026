@@ -1,0 +1,78 @@
+---
+title: "Micro-frontends vs React Server Components: an honest comparison"
+description: "They're often compared, but they solve different problems. One helps large organisations ship independently; the other helps pages load faster. Here's how to decide what you actually need."
+date: "2025-11-18"
+tags: ["Architecture", "React", "Micro-Frontends", "Next.js"]
+draft: false
+---
+
+I've spent years working on a large commerce platform built as **micro-frontends**: the website is split into many separate frontend apps, each in its own repository, built and released on its own, and stitched together into one site.
+
+Meanwhile, the React world has moved towards **React Server Components**, where much of the page is built on the server and less code is sent to the browser.
+
+People often ask which one is better. The honest answer is that they solve different problems, and mixing up those problems is how teams end up with an architecture that fits someone else's situation.
+
+## What micro-frontends give you
+
+The main benefit of micro-frontends is **organisational**, not technical.
+
+- **Teams ship independently.** The cart team can release on Tuesday without waiting for the search team.
+- **Ownership is clear.** Each area of the site has its own codebase and its own owners.
+- **Failures are contained.** A bug in one area is less likely to break everything.
+- **You can modernise piece by piece.** In theory, one app can upgrade before the others.
+
+For a large company with many teams working on one website, those are real advantages.
+
+## What micro-frontends cost you
+
+The costs are just as real, and they grow quietly:
+
+- **Upgrades multiply.** Every framework or build-tool upgrade has to happen in every app. I've led upgrades that touched twenty-plus repositories, and the work isn't the change itself, it's repeating it carefully everywhere.
+- **Shared code drifts.** A shared component library keeps the site consistent, but each app can end up on a slightly different version of it.
+- **Releases need coordination.** "Independent" releases still need someone to track what's shipping where. Managing monthly releases across a dozen repositories is a job in itself.
+- **Visitors may download the same things twice.** Unless you're careful, separate apps can each bring their own copy of common libraries.
+- **Consistency takes effort.** Without a strong design system, separate teams build slightly different buttons, spacing and behaviour.
+
+None of this makes micro-frontends wrong. It means they have an ongoing tax, and you should be sure you're getting enough back.
+
+## What React Server Components give you
+
+Server Components are about **how pages are delivered**, not how teams are organised.
+
+- **Less code in the browser.** Parts of the page that don't need to be interactive are built on the server and sent as finished content.
+- **Data fetching close to the data.** The server can talk to your systems directly, without an extra round trip from the browser.
+- **Streaming.** The page can appear in pieces as each part is ready, instead of waiting for the slowest piece.
+
+For content-heavy pages like product listings, product details and editorial pages, that can mean faster loading, especially on slower phones.
+
+## What React Server Components cost you
+
+- **A new way of thinking.** Deciding what runs on the server and what runs in the browser is a skill teams have to learn.
+- **Caching gets more complex.** Knowing what's cached, where and for how long is now part of everyday work.
+- **It's still one app.** Server Components don't, by themselves, let separate teams release separate parts of the site independently.
+- **Migration isn't free.** Moving an existing app over is a project, not a setting.
+
+## They answer different questions
+
+| If your main problem is… | Look at… |
+| --- | --- |
+| Many teams blocking each other's releases | Micro-frontends, or clear module boundaries in one app |
+| Pages loading slowly on real devices | Server Components, less JavaScript, better caching |
+| Inconsistent UI across the site | A shared design system (needed either way) |
+| Painful upgrades across many apps | Fewer apps, or a strong shared upgrade playbook |
+| Slow servers and backends | Neither: fix the backend first |
+
+Micro-frontends answer "how do many teams work on one site?" Server Components answer "how do we send less work to the browser?" You can have both, either or neither.
+
+## My take
+
+If I were starting a new commerce site today, I'd begin with **one well-structured app** with clear internal boundaries between areas like product, cart and checkout, and use Server Components where they make pages lighter. I'd split into separate apps only when team structure forced it, for example when release coordination was genuinely slowing teams down.
+
+If you already have micro-frontends, you don't need to throw them away. Invest in the things that reduce their tax:
+
+- **A strong shared component library**, with a clear upgrade path.
+- **A shared playbook for upgrades**, ideally partly automated.
+- **Performance budgets per app**, so the combined page doesn't grow unnoticed.
+- **Shared libraries loaded once**, not once per app.
+
+The worst outcome isn't choosing the "wrong" architecture. It's choosing one for the problem you read about, rather than the problem you actually have.

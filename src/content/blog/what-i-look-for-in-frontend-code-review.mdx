@@ -1,0 +1,91 @@
+---
+title: "960 pull requests later: what I look for in code review"
+description: "After authoring more than 960 pull requests and reviewing over 150 across 20+ repositories, here's what I actually check, what I skip, and how I try to make reviews useful rather than painful."
+date: "2026-01-13"
+tags: ["Code Review", "Engineering Culture", "Frontend"]
+draft: false
+---
+
+Over the years I've written more than 960 pull requests and reviewed more than 150 across over twenty repositories. That's enough to notice which review comments actually prevent problems, and which just slow people down.
+
+This is what I look for, roughly in order of importance.
+
+## 1. Does it do the right thing?
+
+Before anything else: does the change actually solve the problem it's meant to? I read the ticket or description first, then check whether the code matches it, including the cases nobody mentioned. What happens with an empty cart? A logged-out user? A product with no image?
+
+Elegant code that solves the wrong problem is still the wrong code.
+
+## 2. What happens when things go wrong?
+
+Most production incidents I've worked on weren't caused by the happy path. They came from what happened when something else failed. So I ask:
+
+- What if the service this calls is **slow** or **down**? Is there a time limit?
+- What if the data comes back **empty** or in an unexpected shape?
+- What if the user sends **bad input**?
+- Does one failure break **the whole page**, or just one part of it?
+
+A change that handles failure well is worth more than one that's slightly faster.
+
+## 3. What does it cost at scale?
+
+Some code runs once. Some runs on every page view for every visitor. I look carefully at anything on a busy path:
+
+- Does it add work to **every request**?
+- Are independent steps happening **one after another** when they could happen together?
+- Is there **logging** that will produce huge volumes at peak traffic?
+- Does it add a **dependency** that makes the page heavier for everyone?
+
+Something that costs nothing in testing can cost a lot on the busiest day of the year.
+
+## 4. Is user data safe?
+
+This is the one I never skip:
+
+- Is anything **personal** stored somewhere shared between users?
+- Do logs include **personal details, tokens or passwords**?
+- Is anything that came from the user **trusted** without being checked?
+
+These issues are rarely visible in a demo, and they're the most expensive to discover later.
+
+## 5. Can the next person understand it?
+
+Code is read far more often than it's written. I look for clear names, small functions, and comments that explain _why_ rather than _what_. If I need the author to explain something in a comment, the explanation probably belongs in the code.
+
+## 6. Will a test catch it if it breaks?
+
+I don't chase coverage numbers. I ask whether the tests would actually fail if this change were broken later. A few tests that check real behaviour are worth more than many that check implementation details.
+
+## 7. Frontend specifics
+
+For user-facing changes, I add a few more checks:
+
+- **Accessibility:** can it be used with a keyboard and a screen reader? Are images described?
+- **Weight:** does it add significantly to what users download?
+- **Images:** are they the right size for the screen, and optimised?
+- **Layout stability:** does anything jump around while the page loads?
+- **Responsiveness:** does it work on a small phone, not just a large monitor?
+
+## What I don't spend time on
+
+**Formatting.** Spacing, quote styles and line lengths should be decided once and enforced automatically. I standardised formatting across every repository on one platform for exactly this reason: it removed a whole category of comments, so reviews could focus on what matters.
+
+**Personal preference.** If two approaches are equally good, the author's choice wins.
+
+## How I write review comments
+
+- **Ask, don't order.** "What happens if this list is empty?" invites thinking. "Handle empty lists" invites compliance.
+- **Explain why.** A comment that teaches something prevents the same issue next time.
+- **Label the weight.** I mark small suggestions clearly as optional, so the author knows what actually blocks the merge.
+- **Say what's good.** If something is well done, I say so. Reviews shouldn't only ever be bad news.
+
+## As an author
+
+The best way to get a good review is to make it easy:
+
+- **Keep pull requests small**, ideally one idea per change.
+- **Explain what, why and how you tested it** in the description.
+- **Review your own diff first.** I catch something in my own changes surprisingly often.
+- **Point reviewers at the risky part**, so their attention goes where it's needed.
+
+Code review isn't about catching people out. It's the cheapest moment to prevent a problem, and the best moment to share what you know.

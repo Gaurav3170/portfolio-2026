@@ -1,0 +1,92 @@
+---
+title: "Performance guardrails: keeping a fast site fast"
+description: "Making a website fast is a project. Keeping it fast is a habit. Here's how to stop performance from quietly slipping back after the big fix."
+date: "2026-09-15"
+tags: ["Performance", "Engineering Culture", "Code Review"]
+draft: false
+---
+
+After a big performance push, there's a satisfying moment when the graphs drop and the site feels quick again. Then, slowly, it starts to slip.
+
+Nobody decides to make the site slower. A new feature adds one more step to every page. Someone switches on detailed logging to chase a bug and forgets to switch it off. A helpful new library adds weight to every page load. Each change is small and reasonable on its own, and together they undo months of work.
+
+I've watched this happen, and I've spent time making sure it doesn't happen again. This post is about the guardrails that keep a fast site fast.
+
+## Why performance slips
+
+Three things make performance regressions especially sneaky:
+
+- **They're usually invisible on a quiet day.** A wasteful step that costs nothing for ten visitors can bring the site down for ten thousand. Most testing happens at low traffic.
+- **Each one is small.** No single pull request looks like the one that made the site slow.
+- **It's nobody's job.** Features have owners and deadlines. Performance is everyone's responsibility, which in practice can mean no one's.
+
+Guardrails work by making the fast way the easy way, and by catching the slow way before it reaches customers.
+
+## Guardrail 1: Write down the rules, using your own examples
+
+After every performance investigation, I write short guidelines for the team. Not a generic best-practices list from the internet, but rules drawn from what we actually found, with examples from our own systems:
+
+- Don't make every request do work that only one feature needs.
+- Fetch independent things at the same time, not one after another.
+- Every call to another system needs a time limit.
+- Keep logs short, and never log personal details.
+- Only share cached information that's identical for every user.
+
+Real examples make rules stick. "We once spent seven seconds of every cart update fetching something only one page used" is far more memorable than "avoid unnecessary work."
+
+## Guardrail 2: A checklist in every pull request
+
+Guidelines in a document get forgotten. Questions in the pull request template get asked every time.
+
+The checklist I use is short enough that people actually read it:
+
+- Does this add work to every page or every request? Could it run in parallel, be cached, or be skipped?
+- Does it add a new call to another system? Does that call have a time limit and a plan for failure?
+- Does it add logging on a busy path? Is it short, and free of personal data?
+- Could unexpected input or a failing system break the whole page?
+- Does it add a new dependency? How much does it add to what users download?
+- Have the affected pages been checked before and after?
+
+A reviewer doesn't need to be a performance expert to ask these questions. That's the point.
+
+## Guardrail 3: Safe defaults
+
+People forget things. Defaults don't.
+
+If detailed logging is **off unless someone turns it on**, a forgotten debug session can't fill your logs in production. If every outside call has a **time limit built into the shared client**, new code gets one automatically. If connection pools have a **sensible maximum**, a traffic spike can't open thousands of connections.
+
+Whenever a fix depends on everyone remembering to do something, I look for a way to make it the default instead.
+
+## Guardrail 4: Measure before and after
+
+"It should be faster" isn't evidence. For anything on a busy path, compare the numbers:
+
+- How long do the key pages take to respond? For a store, that means home, product listing, product detail and cart.
+- How many outside calls does a request make?
+- How much processing time and memory does it use?
+
+For bigger changes, rerun the same stress test, on the same hardware, that you used to measure the original improvement. If you change the test and the code at the same time, you can't tell which one moved the number.
+
+## Guardrail 5: Let the build say no
+
+Some checks are mechanical enough that a computer should do them on every pull request:
+
+- **Bundle size budgets.** If a change makes the JavaScript users download noticeably bigger, the check fails and someone has to justify it.
+- **Lab performance scores.** Automated page-speed audits catch obvious regressions in loading and layout stability.
+- **Dependency checks.** New packages, known vulnerabilities and duplicated libraries are flagged automatically.
+
+Budgets turn "is this too slow?" from an opinion into a number. They also make the conversation easier: you're not criticising someone's code, the budget is.
+
+## Guardrail 6: Watch production, not just tests
+
+Some problems only appear with real traffic. Keep an eye on:
+
+- Response times for the busiest routes, especially the slowest few percent of requests.
+- How many outside calls each request makes. A sudden increase usually means new work crept onto a busy path.
+- Processing time, memory and restart counts for each service.
+
+Alert on trends, not just outages. A service that gets 10% slower every release won't trip an alarm until it's far too late.
+
+## Make it a habit, not a project
+
+The big performance push gets the attention, but the guardrails are what protect the result. If I had to choose only one, I'd choose the pull-request checklist: it costs almost nothing, and it puts the right questions in front of the right people at exactly the right moment.

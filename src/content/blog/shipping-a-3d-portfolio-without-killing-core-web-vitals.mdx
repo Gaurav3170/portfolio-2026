@@ -1,0 +1,80 @@
+---
+title: "Shipping a 3D portfolio without killing Core Web Vitals"
+description: "A scroll-driven 3D scene is a performance risk. Here's how this site keeps it decorative, optional and cheap, so the content always comes first."
+date: "2026-07-14"
+tags: ["Performance", "WebGL", "Next.js", "Accessibility"]
+draft: false
+---
+
+When I rebuilt this portfolio, I wanted something more memorable than a list of jobs. The result is a 3D journey: as you scroll, a camera travels down a corridor that changes from dense glass and metal (the present) to faint blueprint lines (where my career started).
+
+I've also spent years making large websites fast, so I know what 3D sites often get wrong: blank screens while a huge file downloads, scrolling that feels hijacked, laptop fans spinning up, and content you can't read until the animation finishes.
+
+This post covers the rules I followed so the 3D scene adds atmosphere without costing visitors anything.
+
+## Rule 1: The content is the page. The 3D scene is decoration.
+
+Every heading, paragraph and link on the home page is ordinary HTML, produced on the server. If the 3D scene never loads, nothing is missing. You can read the whole career story with JavaScript turned off.
+
+The 3D canvas sits behind the text and is hidden from screen readers. It's scenery, not information. Making that decision first shaped everything else: if the scene is optional, it can never be allowed to slow down the part that isn't.
+
+## Rule 2: Load the 3D code last
+
+3D libraries are large. If the browser has to download and run them before showing anything, every visitor waits.
+
+So the 3D code is split into its own bundle and only loaded in the browser, after the text is already on screen. The JavaScript needed for the first page load stays under 150 KB, and none of that is the 3D engine.
+
+While the scene loads, visitors see a soft static gradient. When the first 3D frame has been drawn, the canvas fades in over it. There's never a black flash or a moment where the page looks broken.
+
+## Rule 3: Draw less
+
+Most 3D sites are slow because they ship large models and textures. This one ships **none**. Every shape is generated in code from simple geometry: boxes, planes and lines.
+
+The structures are made of thousands of repeated panels and arches. Instead of asking the graphics card to draw each one separately, the scene uses a technique called **instancing**: describe a shape once, then stamp out copies with different positions in a single instruction. Each era of the corridor is drawn in a couple of steps rather than thousands.
+
+It's the difference between painting every brick in a wall by hand and using a stamp.
+
+## Rule 4: Adapt to the device
+
+A gaming laptop and a three-year-old phone shouldn't get the same scene. When the page loads, it checks three things:
+
+- Is this a touch screen?
+- Is the window narrower than a typical laptop?
+- Does the device have four processor cores or fewer?
+
+If any of those is true, the visitor gets a lighter scene: about a third of the floating particles, roughly half the structures, no edge smoothing, and no camera movement when the cursor moves.
+
+Then it keeps watching. Once a second, the scene checks how many frames it managed to draw. If it falls below about 48 frames per second, it lowers the rendering resolution a little. When things are smooth again (around 58 or more), it raises it back. A slow device gets a slightly softer picture instead of a stuttering one.
+
+And when you switch to another tab, rendering stops completely. There's no point burning battery on something nobody can see.
+
+## Rule 5: Don't fight the scroll
+
+Many scroll-driven sites take over the scroll wheel to control the animation. It feels clever for five seconds and frustrating after that: trackpads feel wrong, keyboard shortcuts break, and links to sections stop working.
+
+This page scrolls like any other page. The browser handles wheel, touch, keyboard, scrollbar and links normally. The 3D scene simply _reads_ how far down you are and places the camera accordingly.
+
+Two details make that robust:
+
+- **The scroll position goes into a simple shared value** that the animation reads on every frame. The rest of the page never re-renders while you scroll, so scrolling stays smooth even while the scene is busy.
+- **The camera's position is worked out purely from how far you've scrolled.** Scroll down and back up, and you're exactly where you started. Scroll as fast as you like, and the scene can't end up half-finished or out of sync.
+
+## Rule 6: Respect people who don't want motion
+
+Some people find movement on screen uncomfortable or disorienting, and their device settings say so. For them, the camera cuts between chapters instead of gliding, text appears instantly instead of fading in, and the particles stay still.
+
+Browsers that can't do 3D at all get the same content over the static gradient. Nobody gets an error message or an empty page.
+
+## A checklist for adding 3D to a site
+
+If you're considering a 3D or heavily animated page, these are the questions I'd ask first:
+
+1. **Can someone read everything without the animation?** If not, the animation is in the way.
+2. **Does the first screen appear before the 3D code downloads?** It should.
+3. **Are you shipping models and textures you could generate or simplify?**
+4. **What happens on a mid-range phone?** Test on one, not just your development machine.
+5. **Does the scene slow down gracefully,** or does it stutter?
+6. **Does normal scrolling still work?** Keyboard, trackpad, links, everything.
+7. **What do reduced-motion and no-3D visitors see?**
+
+The best compliment a decorative effect can get is that it never gets in anyone's way.

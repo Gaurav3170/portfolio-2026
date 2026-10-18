@@ -22,7 +22,7 @@ export default function BlogLayout({ children }: { children: React.ReactNode }) 
       </main>
       <footer className={styles.footer}>
         <p>
-          © {new Date().getFullYear()} {profile.name} · <a href="/blog/rss.xml">RSS feed</a>
+          © 2025 {profile.name} · <a href="/blog/rss.xml">RSS feed</a>
         </p>
       </footer>
     </div>

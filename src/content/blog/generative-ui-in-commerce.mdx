@@ -1,0 +1,86 @@
+---
+title: "Generative UI in commerce: when a shopping assistant should answer with more than words"
+description: "AI shopping assistants usually reply in paragraphs. But shopping is visual and comparative. Here's when an assistant should answer with product cards, tables and buttons instead, and how to do it safely."
+date: "2026-05-12"
+tags: ["AI", "Commerce", "UX", "Frontend"]
+draft: false
+---
+
+Most AI assistants on shopping sites work like a chat window: you type a question, it replies with a paragraph. That's fine for some questions. But imagine asking a shop assistant to compare three running shoes and getting a long spoken essay back, instead of having the shoes put side by side in front of you.
+
+**Generative UI** is the idea that an assistant can reply with **interactive pieces of the interface** (product cards, comparison tables, a cart preview, an order tracker) instead of only text.
+
+I've worked on integrating an AI chatbot into a commerce site, with context that carries across a customer's session. Here's how I think about where generative UI helps, and how to build it responsibly.
+
+## Why shopping needs more than text
+
+Shopping is:
+
+- **Visual.** People want to see the product, not read a description of it.
+- **Comparative.** Choosing usually means weighing a few options side by side.
+- **Action-oriented.** The goal is to add to cart, pick a size or check an order, which needs buttons, not sentences.
+
+A paragraph describing three products, with their prices buried in the text, makes the shopper do all the work. A row of product cards does that work for them.
+
+## When text is still the right answer
+
+Not every reply needs components. Text works best for:
+
+- **Explanations:** "What's the difference between these two materials?"
+- **Policies:** returns, delivery times, warranties.
+- **Open-ended advice:** "What should I consider when buying a stroller?"
+
+A good assistant decides, answer by answer, what will actually help.
+
+## When components are better
+
+| The shopper asks… | A better reply than text |
+| --- | --- |
+| "Show me waterproof jackets under ₹5,000" | Product cards with image, price, rating and "Add to cart" |
+| "Compare these two phones" | A side-by-side comparison table |
+| "Add two of these to my cart" | A cart preview with a clear confirm button |
+| "Where's my order?" | An order tracker showing each delivery step |
+| "Does this come in blue?" | The product card with colour options to pick from |
+
+## Principles for doing it safely
+
+### Let the AI choose, not invent
+
+The assistant shouldn't design interface elements on the fly. Your team builds a **fixed set of components**, such as product card, comparison table, cart preview and order tracker, and the AI chooses which to show and what to put in them. That keeps the experience consistent, accessible and on-brand.
+
+### Prices and stock come from your systems, never from the AI
+
+This is the most important rule. An AI model can confidently state the wrong price or claim something is in stock when it isn't. Every price, stock level and delivery estimate must come **live from your own systems**. The AI decides _which_ products to show; your systems decide _what's true_ about them.
+
+### Confirm before anything that costs money
+
+The assistant can suggest adding something to the cart or placing an order, but the customer should always confirm with a clear button press. No purchase should ever happen just because the AI misunderstood a sentence.
+
+### Show something quickly
+
+AI replies can take a few seconds. Stream the response: show a short message or a loading placeholder straight away, then fill in the cards as results arrive. Speed is part of the experience. A clever answer that takes ten seconds feels worse than a decent one in two.
+
+### Always have a fallback
+
+If a component can't be shown, for example because the product data didn't load, fall back to a plain text answer with a link. The conversation should never just break.
+
+### Make it accessible
+
+Generated components must work with a keyboard and a screen reader, just like the rest of the site. Building them as part of your own component library makes that much easier.
+
+## Risks to plan for
+
+- **Made-up products or details.** Only ever show products that exist in your catalogue, pulled from your systems.
+- **Privacy.** Session context makes the assistant more helpful, but personal details must stay with that customer, and shouldn't be stored or logged unnecessarily.
+- **Over-eagerness.** An assistant that pushes products in every reply quickly feels like a salesperson who won't leave you alone.
+
+## How to know if it's working
+
+Measure the assistant like any other part of the store:
+
+- **Time to first useful content:** how quickly something helpful appears.
+- **Task completion:** did the shopper find what they asked for?
+- **Conversion:** do assisted shoppers add to cart and check out?
+- **Errors:** wrong products, failed actions, unanswered questions.
+
+Generative UI isn't about making the assistant look impressive. It's about cutting the distance between a question and an action. In commerce, that distance is everything.

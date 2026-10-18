@@ -40,7 +40,7 @@ export function Contact() {
       </div>
       <footer className={styles.footer}>
         <p>
-          © {new Date().getFullYear()} {profile.name}. Built with Next.js, React Three Fiber and GSAP.
+          © 2025 {profile.name}
         </p>
       </footer>
     </section>

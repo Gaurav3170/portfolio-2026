@@ -39,8 +39,8 @@ Posts live in **`src/content/blog/`** as `.mdx` files; the file name is the URL 
 ---
 title: "Post title"
 description: "One or two sentences for the index, search results and link previews."
-date: "2026-10-18"        # quoted YYYY-MM-DD
-updated: "2026-11-02"     # optional
+date: "2026-09-15"        # quoted YYYY-MM-DD; a future date stays hidden until a build on or after it
+updated: "2026-10-18"     # optional
 tags: ["Performance", "Next.js"]
 draft: true               # drafts show in `npm run dev` only
 ---

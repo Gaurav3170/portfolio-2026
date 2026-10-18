@@ -1,0 +1,67 @@
+---
+title: "React Compiler 1.0: what it changes for large codebases, and what it doesn't"
+description: "React Compiler went stable in October 2025 and promises automatic performance optimisation. Here's what it genuinely improves, where its limits are, and how to adopt it safely in a big codebase."
+date: "2025-10-21"
+tags: ["React", "Performance", "Frontend", "Tooling"]
+draft: false
+---
+
+In October 2025, the React team released **React Compiler 1.0**, its first stable version. It's a build tool that automatically applies an optimisation React developers have been doing by hand for years.
+
+It's a genuinely useful tool. It's also easy to overestimate. Having spent years on performance for large React applications, here's how I'd think about it.
+
+## The problem it solves
+
+React updates the screen by re-running components when something changes. Often it re-runs more than necessary: a small change near the top of the page can cause large parts of the page to recalculate, even when their output would be identical.
+
+The usual fix is **memoization**: telling React "if the inputs haven't changed, reuse the previous result." Developers do this with tools like `useMemo`, `useCallback` and `React.memo`.
+
+Done by hand, memoization has problems:
+
+- **It's easy to forget,** so slow spots creep in.
+- **It's easy to get wrong.** One missed input and you get stale data; one unstable input and the optimisation silently does nothing.
+- **It clutters the code,** making components harder to read.
+
+## What the compiler does
+
+React Compiler analyses your components while the app is being built and adds memoization automatically, in places a person would struggle to, including inside conditional logic where hand-written memoization can't reach.
+
+According to the React team, it's been tested on major apps at Meta, works without rewriting your code, and can be adopted gradually. It supports React 17 and later. Its lint rules now ship as part of the standard React Hooks ESLint plugin, and frameworks including Next.js, Vite and Expo offer built-in support or templates.
+
+## What it changes
+
+- **Fewer unnecessary re-renders,** without anyone writing optimisation code.
+- **Cleaner components.** Much of the manual memoization can eventually be removed.
+- **More consistent performance.** It doesn't forget, and it doesn't get tired at the end of a sprint.
+- **Better habits.** Its lint rules flag code that breaks React's rules, which helps even if you don't enable the compiler right away.
+
+## What it doesn't change
+
+This is where expectations need care. The compiler optimises **re-rendering**. Many performance problems have nothing to do with re-rendering:
+
+- **Slow servers and APIs.** If the data takes two seconds to arrive, the page still waits two seconds.
+- **Large downloads.** It doesn't make your JavaScript bundle smaller.
+- **Heavy third-party scripts.** Analytics and widgets still compete for the browser's attention.
+- **Work that has to happen anyway.** If a component genuinely needs to process a huge list, memoization can avoid repeating it, but not avoid doing it the first time.
+- **Architecture.** It won't fix a page that loads too much, too early.
+
+In my experience, the biggest performance wins on large commerce sites came from the network and the server: fewer requests, parallel requests, caching and timeouts. The compiler is a valuable addition, not a replacement for that work.
+
+## The catch: the Rules of React
+
+The compiler relies on your components following the **Rules of React**, for example not modifying data React gave you, and calling hooks consistently.
+
+When it finds a component that breaks the rules, it simply leaves that component alone. That's safe, but it means older or unusual code may not benefit. In a large, long-lived codebase, there will be some of that.
+
+## Adopting it in a big codebase
+
+1. **Turn on the lint rules first.** Fix what they find. This makes the codebase healthier whether or not you enable the compiler.
+2. **Measure a baseline.** Record how key pages perform today, especially interaction speed on real devices.
+3. **Enable it gradually.** Start with one part of the app, or one micro-frontend, rather than everything at once.
+4. **Lean on your tests.** Code that quietly broke the rules may behave differently once optimised. Good tests catch that.
+5. **Measure again.** Compare with the baseline, on the same pages and devices.
+6. **Remove manual memoization slowly,** only once you're confident the compiler is covering it.
+
+## The bottom line
+
+React Compiler removes a whole category of tedious, error-prone work, and for most React teams it's worth adopting. Just keep it in perspective. It makes React do less unnecessary work in the browser. It doesn't make your servers faster, your bundles smaller or your architecture simpler. Those are still yours to fix.

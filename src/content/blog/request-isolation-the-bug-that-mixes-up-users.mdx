@@ -1,0 +1,92 @@
+---
+title: "Request isolation: the bug that can show one user another user's data"
+description: "Servers handle many people at once. Store 'the current user' in the wrong place, and under load one person's request can pick up someone else's details. Here's how it happens and how to prevent it."
+date: "2026-08-11"
+tags: ["Security", "Reliability", "Node.js", "Backend"]
+draft: false
+---
+
+Some bugs make a website slow. Some make it crash. This one is worse: it can quietly show one customer another customer's information.
+
+I've found this pattern more than once while working on performance, in code that had passed every test and run in production for a long time. It hides well, which is exactly why it's worth understanding.
+
+## One server, many customers at once
+
+A modern web server doesn't handle one visitor at a time. It juggles hundreds of requests together.
+
+Picture a single, very fast chef in a busy kitchen. They start one order, and while it's in the oven, they start the next, then the next. Whenever something is ready, they pick that order back up and continue. Nobody waits for the oven, and the kitchen gets through a huge number of orders.
+
+That's how many web servers work. A request often pauses while it waits for another system (a database, a payment service, a product catalogue), and while it waits, the server works on other requests.
+
+This is great for speed. But it means the chef has to keep track of which order is which.
+
+## Where it goes wrong
+
+Now imagine the chef keeps a single note on the wall: "current customer." When an order starts, they write that customer's name on it. When they need to know who an order is for, they glance at the wall.
+
+With one customer, this works perfectly. With many, it falls apart:
+
+| Moment | Order A | Order B | Note on the wall |
+| --- | --- | --- | --- |
+| 1 | Starts, writes "Customer A" | | Customer A |
+| 2 | Goes in the oven (waiting) | | Customer A |
+| 3 | | Starts, writes "Customer B" | **Customer B** |
+| 4 | | Goes in the oven (waiting) | Customer B |
+| 5 | Comes out, checks the wall | | says **Customer B** ❌ |
+
+At moment 5, order A carries on as if it belongs to customer B. In software terms, a request can load the wrong account, check the wrong permissions, or show the wrong details.
+
+The shared note is a **shared variable**: one storage place that every request in the server can see.
+
+## Why it hides so well
+
+- **It never happens in testing.** With one tester clicking around, there's only ever one request in flight, so the shared note is always right.
+- **It needs exact timing.** Two requests have to overlap at precisely the wrong moments, so it's rare and hard to reproduce.
+- **It gets more likely under load.** The busier the site, the more requests overlap, so it's most likely to strike on your biggest days.
+- **The symptoms look random.** "A customer saw the wrong name once" is the kind of report that gets closed as "can't reproduce."
+
+## Where to look for it
+
+The wall note can take several forms:
+
+- **A shared "current user" value**, set at the start of a request and read later.
+- **A shared cache that stores personal data** without the user as part of its label, so one person's saved result is returned to another.
+- **A shared connection or client object** that someone configured with a specific user's credentials.
+- **A shared list that requests add to**, which slowly fills up with everyone's data.
+
+The common thread: something that lives for the whole server is holding something that belongs to one request.
+
+## How to fix it
+
+### Carry the customer with the order
+
+Instead of a note on the wall, attach the customer's name to the order ticket itself. In software, that means passing user details along with the request, or using the request-context feature most server platforms provide. Node.js, for example, has a built-in way to keep data attached to a single request across every pause and resume.
+
+Each request then reads its own details, no matter what other requests are doing.
+
+### Only share what's the same for everyone
+
+Shared storage is fine, and fast, for things that are identical for every visitor: configuration, page content, product templates. The rule is simple: **if it's personal, it doesn't go anywhere shared.**
+
+### Label personal caches by user, or don't share them
+
+If you genuinely need to cache something personal, the user must be part of its label. Usually it's safer not to cache it in a shared place at all.
+
+## How to test for it
+
+You can't find this bug with one user. You have to recreate the crowd:
+
+1. Send many requests at once, from many different test users.
+2. Add random delays to the systems they wait on, so requests overlap in different orders.
+3. Check that every response belongs to the user who asked for it.
+
+When I fixed this pattern, a test with dozens of overlapping requests from different users, with random delays, gave zero mismatches. That's the result you want to see before you trust it.
+
+## What to ask in code review
+
+- Is anything stored at the server level that changes per user or per request?
+- Is anything read _after_ a pause that could have been changed by another request?
+- Does any shared cache hold personal data?
+- Does any shared client carry a specific user's credentials?
+
+This bug rarely affects speed, so performance work doesn't always catch it. But of everything I've fixed on busy systems, it's the one I'd check for first.

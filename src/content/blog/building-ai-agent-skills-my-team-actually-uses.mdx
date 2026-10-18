@@ -1,0 +1,83 @@
+---
+title: "Building AI agent skills my team actually uses"
+description: "AI coding agents are most useful when you give them a precise, repeatable job. Here's how I turned repetitive engineering chores into shared skills, and how we keep them safe."
+date: "2026-04-14"
+tags: ["AI", "Developer Productivity", "Engineering Culture"]
+draft: false
+---
+
+A lot of engineering work isn't hard. It's just repetitive. Fixing the same kind of security alert in twenty repositories. Applying the same upgrade, the same way, again and again. Each one takes an hour of careful attention, and doing it twenty times is how mistakes creep in.
+
+That kind of work turns out to be a good fit for AI coding agents. Not by asking them to "go fix things", but by giving them a precise, written playbook to follow. That playbook is what I call a **skill**.
+
+I've built several and shared them with my team. Here's what I've learned about making them useful, and safe.
+
+## What a skill actually is
+
+A skill is a set of written instructions an AI coding agent follows from start to finish: what to check, in what order, what good looks like, and when to stop and ask a human.
+
+Think of it as the runbook an experienced engineer would write for a new teammate, except the teammate follows it exactly, every time, and never skips a step because it's Friday afternoon.
+
+A good skill covers the whole job:
+
+1. **Analysis:** gather the real facts, not assumptions.
+2. **The fix:** make the smallest change that solves the problem.
+3. **Testing:** check that the change works the way the app actually runs.
+4. **A pull request:** hand the result to a human for review.
+
+## The first one: dependency security fixes
+
+The first skill I built handles security alerts for third-party packages, the warnings you get when a library your code depends on has a known vulnerability.
+
+Fixing these is a perfect candidate:
+
+- **It's repetitive.** The same kinds of alerts appear across many repositories.
+- **It's rules-based.** There's a right way to do it: upgrade as little as possible, avoid breaking changes, and confirm nothing else moved.
+- **Inconsistency is risky.** If everyone fixes alerts slightly differently, some repositories end up with surprising versions or half-finished fixes.
+
+The skill pulls the actual list of open alerts, plans the smallest upgrade that resolves each one, applies it, tests the application the way it really starts and runs, and opens a pull request explaining exactly what changed and why.
+
+The engineer's job changes from doing the fix to reviewing it, which is faster and, frankly, a better use of their judgement.
+
+## What makes a skill work
+
+### Keep the scope narrow
+
+The skills that work best do one job well. "Fix dependency alerts in this kind of service" works. "Improve this repository" doesn't. The narrower the job, the clearer the instructions, and the easier it is to check the result.
+
+### Write down what the team knows
+
+The most valuable part of a skill isn't the obvious steps. It's the hard-won knowledge: the library that must never be upgraded without its companion, the test that has to run with production-like settings, the version that looks compatible but isn't. Writing that down once means nobody has to rediscover it.
+
+### Make it prove its work
+
+An agent saying "all tests pass" isn't the same as tests passing. Good skills require evidence: show the command that was run and its output, show the before-and-after versions, explain anything unexpected. If a step fails, the skill should stop and report, not guess.
+
+### Always end with a human
+
+Every skill ends in a pull request that a person reviews. The agent never merges its own work. That one rule makes everything else much less risky: the worst case becomes a pull request someone rejects.
+
+## Keeping agents safe
+
+AI agents can run commands and change code, so they deserve the same care you'd give any powerful tool:
+
+- **Give them the minimum access they need.** A skill that fixes dependencies doesn't need production access.
+- **Keep secrets out.** Skills should never need passwords or keys pasted into them.
+- **Prefer small changes.** A small diff is easy to review. A huge one hides mistakes.
+- **Read before running.** Instructions copied from elsewhere should be read before they're trusted, just like scripts.
+
+## Getting a team to actually use them
+
+A skill nobody uses is just a document. A few things helped adoption:
+
+- **Start with a chore everyone dislikes.** Nobody argued about automating security-alert fixes.
+- **Show the output, not the idea.** A clean, well-explained pull request convinces people faster than any demo.
+- **Treat skills like code.** Share them, review changes to them, and improve them when they get something wrong.
+
+The result was faster delivery on routine work and, just as importantly, consistency: the same kind of fix done the same way everywhere.
+
+## How to start
+
+Pick a task you've done at least ten times. Write down exactly how you do it, including the gotchas. Run it with an agent while you watch closely. Fix the instructions wherever it went wrong. Then share it.
+
+The goal isn't to replace engineering judgement. It's to stop spending that judgement on the same chore for the twentieth time.
