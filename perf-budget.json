@@ -1,0 +1,17 @@
+{
+  "pages": ["/", "/blog", "/blog/shipping-a-3d-portfolio-without-killing-core-web-vitals"],
+  "runs": 5,
+  "formFactor": "mobile",
+  "server": { "build": "npm run build", "start": "npm run start", "port": 4100 },
+  "budgets": {
+    "jsBytes": "400 kB",
+    "totalBytes": "550 kB",
+    "lcp": "3.5 s"
+  },
+  "maxIncrease": {
+    "performance": 5,
+    "jsBytes": "10 kB",
+    "lcp": "15%",
+    "tbt": "20%"
+  }
+}
