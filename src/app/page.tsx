@@ -3,6 +3,7 @@ import { Contact } from "@/components/Chapters/Contact";
 import { ExperienceChapter } from "@/components/Chapters/ExperienceChapter";
 import { Intro } from "@/components/Chapters/Intro";
 import { Projects } from "@/components/Chapters/Projects";
+import { Writing } from "@/components/Chapters/Writing";
 import { JourneyBackdrop } from "@/components/Journey/JourneyBackdrop";
 import { ScrollDriver } from "@/components/Journey/ScrollDriver";
 import { ChapterRail } from "@/components/Navigation/ChapterRail";
@@ -31,6 +32,7 @@ export default function HomePage() {
           />
         ))}
         <Projects />
+        <Writing />
         <Contact />
       </main>
     </>

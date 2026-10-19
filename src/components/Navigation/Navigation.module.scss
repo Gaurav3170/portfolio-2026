@@ -99,18 +99,30 @@
   }
 }
 
-@media (max-width: 560px) {
-  .header {
-    padding: 16px $gutter-mobile;
-  }
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
 
-  .headerLight {
-    padding-top: 12px;
-    padding-bottom: 12px;
-  }
+// The menu toggle and the bar's own resume link exist for phones only.
+.toggle,
+.barResume {
+  display: none;
+}
 
+// ---------- Phones: links fold into a full-screen menu ----------
+
+// Without JavaScript the toggle can't open anything, so the links just wrap into a
+// compact row instead.
+@media (max-width: 720px) {
   .list {
-    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 4px 14px;
   }
 
   .link {
@@ -119,10 +131,128 @@
   }
 }
 
-// On the narrowest phones the monogram already links to About, so drop the text link
-// rather than let the bar overflow the screen.
-@media (max-width: 400px) {
-  .list > li:first-child {
-    display: none;
+// Keep in sync with MENU_QUERY in Navigation.tsx.
+@media (max-width: 720px) {
+  :global(.js) {
+    // The bar's items sit above the open menu, so the monogram, resume and close
+    // button stay exactly where they were.
+    .monogram,
+    .barResume,
+    .toggle {
+      position: relative;
+      z-index: 2;
+    }
+
+    .barResume {
+      display: block;
+      margin-left: auto;
+      margin-right: 6px;
+    }
+
+    .toggle {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      margin-right: -11px;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: var(--nav-fg, #{$color-text});
+      cursor: pointer;
+    }
+
+    // Three bars drawn from one span; opening turns them into a cross.
+    .toggleBars,
+    .toggleBars::before,
+    .toggleBars::after {
+      display: block;
+      width: 22px;
+      height: 1.5px;
+      background: currentColor;
+      transition:
+        transform 0.3s ease,
+        background-color 0.3s ease;
+    }
+
+    .toggleBars {
+      position: relative;
+
+      &::before,
+      &::after {
+        content: "";
+        position: absolute;
+        left: 0;
+      }
+
+      &::before {
+        transform: translateY(-7px);
+      }
+
+      &::after {
+        transform: translateY(7px);
+      }
+    }
+
+    .toggleOpen .toggleBars {
+      background-color: transparent;
+
+      &::before {
+        transform: rotate(45deg);
+      }
+
+      &::after {
+        transform: rotate(-45deg);
+      }
+    }
+
+    // Hidden with visibility so closed links drop out of the tab order and the
+    // accessibility tree, while still fading.
+    .list {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      flex-direction: column;
+      justify-content: center;
+      gap: 6px;
+      padding: 96px $gutter-mobile;
+      background: var(--nav-bg, #{$color-bg});
+      opacity: 0;
+      visibility: hidden;
+      transition:
+        opacity 0.3s ease,
+        visibility 0s linear 0.3s;
+    }
+
+    .listOpen {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.3s ease;
+    }
+
+    .listResume {
+      display: none;
+    }
+
+    .link {
+      display: inline-block;
+      padding: 10px 0;
+      font-family: $font-display;
+      font-size: 36px;
+      line-height: 1.1;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+  }
+}
+
+@media (max-width: 560px) {
+  .header {
+    padding: 16px $gutter-mobile;
+  }
+
+  .headerLight {
+    padding-top: 12px;
+    padding-bottom: 12px;
   }
 }

@@ -18,7 +18,8 @@ export const zoneZ: Record<SceneId, number> = {
   senior: -ZONE_SPACING * 3,
   beginning: -ZONE_SPACING * 4,
   projects: -ZONE_SPACING * 5,
-  next: -ZONE_SPACING * 6,
+  writing: -ZONE_SPACING * 6,
+  next: -ZONE_SPACING * 7,
 };
 
 /** Lateral sway per chapter, so the camera drifts through space instead of on rails. */
@@ -29,6 +30,7 @@ const sway: Record<SceneId, [number, number]> = {
   senior: [1.4, 0.3],
   beginning: [-1.0, 1.3],
   projects: [1.2, 0.6],
+  writing: [-1.4, 0.5],
   next: [0, 0.7],
 };
 
@@ -66,6 +68,7 @@ interface AtmosphereKey {
 /**
  * Lighting and mood for each chapter, from cold and precise to warm and simple. After the
  * beginning, the projects zone turns cool again: work built today, from those first blueprints.
+ * Writing softens toward the closing scene's neutral light.
  */
 const atmosphereKeys: Record<SceneId, AtmosphereKey> = {
   present: { background: "#04060c", fog: "#070b16", fogFar: 62, key: "#d4e2ff", keyIntensity: 1.5, accent: "#9fc2ff", blueprint: 0.18 },
@@ -74,6 +77,7 @@ const atmosphereKeys: Record<SceneId, AtmosphereKey> = {
   senior: { background: "#070810", fog: "#0b0d17", fogFar: 70, key: "#d4cfe4", keyIntensity: 1.05, accent: "#b8b2d8", blueprint: 0.34 },
   beginning: { background: "#0a090b", fog: "#110e0c", fogFar: 78, key: "#ffd9aa", keyIntensity: 0.7, accent: "#f0b36a", blueprint: 0.75 },
   projects: { background: "#05070d", fog: "#090c15", fogFar: 74, key: "#dfe6f5", keyIntensity: 1.25, accent: "#a9c8ff", blueprint: 0.45 },
+  writing: { background: "#06070c", fog: "#0b0d14", fogFar: 82, key: "#e9ebf0", keyIntensity: 1.1, accent: "#cdd6e8", blueprint: 0.36 },
   next: { background: "#07080b", fog: "#0d0f14", fogFar: 92, key: "#f2eee8", keyIntensity: 0.95, accent: "#e8e2d6", blueprint: 0.3 },
 };
 
@@ -142,6 +146,8 @@ export const structureSpecs: StructureSpec[] = [
   { sceneId: "associate", seed: 37, arches: 9, panels: 16, glassOpacity: 0.15, spread: 11 },
   { sceneId: "senior", seed: 53, arches: 7, panels: 4, glassOpacity: 0.08, spread: 11 },
   { sceneId: "projects", seed: 71, arches: 5, panels: 10, glassOpacity: 0.14, spread: 10 },
+  // Few arches and many loose glass sheets, like pages.
+  { sceneId: "writing", seed: 89, arches: 4, panels: 18, glassOpacity: 0.11, spread: 10 },
 ];
 
 /** Corridor extent used by the floor grid and particles. */

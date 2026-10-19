@@ -2,7 +2,7 @@ import { profile } from "@/data/career";
 import { ResumeLink } from "@/components/Resume/ResumeLink";
 import styles from "./Chapters.module.scss";
 
-/** Scene 7 — the next chapter. */
+/** Scene 8 — the next chapter. */
 export function Contact() {
   return (
     <section id="contact" className={`${styles.chapter} ${styles.contact}`} aria-labelledby="contact-title">

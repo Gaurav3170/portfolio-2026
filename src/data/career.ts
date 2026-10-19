@@ -146,10 +146,11 @@ export const projects: Project[] = [
  */
 export const chapters: Chapter[] = [
   { id: "intro", sceneId: "present", label: "About", focus: 0 },
-  { id: "staff", sceneId: "staff", label: "Staff", focus: 0.2 },
-  { id: "associate", sceneId: "associate", label: "Associate Staff", focus: 0.36 },
-  { id: "senior", sceneId: "senior", label: "Senior", focus: 0.51 },
-  { id: "infosys", sceneId: "beginning", label: "Beginning", focus: 0.66 },
-  { id: "projects", sceneId: "projects", label: "Projects", focus: 0.83 },
+  { id: "staff", sceneId: "staff", label: "Staff", focus: 0.18 },
+  { id: "associate", sceneId: "associate", label: "Associate Staff", focus: 0.32 },
+  { id: "senior", sceneId: "senior", label: "Senior", focus: 0.45 },
+  { id: "infosys", sceneId: "beginning", label: "Beginning", focus: 0.58 },
+  { id: "projects", sceneId: "projects", label: "Projects", focus: 0.74 },
+  { id: "writing", sceneId: "writing", label: "Blog", focus: 0.87 },
   { id: "contact", sceneId: "next", label: "Contact", focus: 1 },
 ];

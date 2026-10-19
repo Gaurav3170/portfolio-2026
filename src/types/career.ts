@@ -1,5 +1,5 @@
 /** Identifies which 3D environment renders behind a chapter. */
-export type SceneId = "present" | "staff" | "associate" | "senior" | "beginning" | "projects" | "next";
+export type SceneId = "present" | "staff" | "associate" | "senior" | "beginning" | "projects" | "writing" | "next";
 
 /** A month/year pair. `null` as an end date means "present". */
 export interface CareerDate {
