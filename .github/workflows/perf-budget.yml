@@ -17,33 +17,12 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # the CLI compares against origin/<base branch>, so it needs that ref
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      - name: Measure base vs PR
-        run: npx --yes perf-budget-guard@0.1.1 run --base "origin/${{ github.base_ref }}"
-
-      - name: Job summary
-        if: always() && hashFiles('.perf-budget-guard/comment.md') != ''
-        run: cat .perf-budget-guard/comment.md >> "$GITHUB_STEP_SUMMARY"
-
-      - name: PR comment
-        # Fork PRs get a read-only token and can't comment; the job summary still has the result.
-        if: always() && hashFiles('.perf-budget-guard/comment.md') != '' && github.event.pull_request.head.repo.full_name == github.repository
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: gh pr comment ${{ github.event.pull_request.number }} --body-file .perf-budget-guard/comment.md --edit-last --create-if-none
-
-      - name: Upload Lighthouse reports
-        if: always() && hashFiles('.perf-budget-guard/comment.md') != ''
-        uses: actions/upload-artifact@v4
+      - uses: Gaurav3170/perf-budget-guard@v1
         with:
-          name: perf-budget-guard
-          path: .perf-budget-guard/
-          retention-days: 14
+          config: perf-budget.json
