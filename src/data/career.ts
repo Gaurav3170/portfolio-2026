@@ -112,6 +112,35 @@ export const experiences: Experience[] = [
  */
 export const projects: Project[] = [
   {
+    id: "perf-budget-guard",
+    title: "Perf Budget Guard",
+    summary:
+      "An open-source GitHub Action and CLI that catches pull requests that make pages slower. It builds the main branch and the PR, measures both with Lighthouse, and posts one comment saying what got worse and which scripts caused it.",
+    highlights: [
+      "Base and PR runs are interleaved and the order flips every round, so a runner that slows down mid-run affects both builds equally.",
+      "A change counts only if it beats the metric's noise floor, a share of its base value and half the run-to-run spread, so one slow run can't fail a PR.",
+      "Content hashes are stripped from script names, so the same chunk is matched across builds and the comment names exactly what grew.",
+      "Fixed budgets stop slow creep across many PRs; per-PR limits catch one large jump while the page is still inside its budget.",
+      "A page that is already over budget only warns unless the PR makes it worse, so existing debt doesn't block unrelated work.",
+      "One comment per PR, rewritten on every push, with the previous result kept so the regression and its fix sit side by side.",
+    ],
+    metrics: [
+      { value: "+171 kB", label: "JS caught" },
+      { value: "94 → 68", label: "Score caught" },
+      { value: "+1.5 s", label: "Blocking caught" },
+      { value: "77", label: "Tests" },
+    ],
+    metricsNote:
+      "From a deliberate regression on this site's /blog page (pull request #2): mobile, median of five Lighthouse 12.8 runs on a GitHub-hosted runner, October 2026.",
+    stack: ["TypeScript", "Node.js", "Lighthouse", "GitHub Actions"],
+    links: [
+      { label: "Source", href: "https://github.com/Gaurav3170/perf-budget-guard" },
+      { label: "npm", href: "https://www.npmjs.com/package/perf-budget-guard" },
+      { label: "The regression it caught", href: "https://github.com/Gaurav3170/portfolio-2026/pull/2" },
+      { label: "How it works", href: "/blog/catching-slow-pull-requests-before-they-merge" },
+    ],
+  },
+  {
     id: "portfolio",
     title: "This portfolio",
     summary:

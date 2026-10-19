@@ -2,6 +2,7 @@
 title: "Performance guardrails: keeping a fast site fast"
 description: "Making a website fast is a project. Keeping it fast is a habit. Here's how to stop performance from quietly slipping back after the big fix."
 date: "2026-09-15"
+updated: "2026-10-19"
 tags: ["Performance", "Engineering Culture", "Code Review"]
 draft: false
 ---
@@ -76,6 +77,8 @@ Some checks are mechanical enough that a computer should do them on every pull r
 - **Dependency checks.** New packages, known vulnerabilities and duplicated libraries are flagged automatically.
 
 Budgets turn "is this too slow?" from an opinion into a number. They also make the conversation easier: you're not criticising someone's code, the budget is.
+
+I've since built the first two of these as an open-source tool, [Perf Budget Guard](https://github.com/Gaurav3170/perf-budget-guard). It measures every pull request against the main branch and posts one comment saying what got slower and which scripts caused it. [Catching slow pull requests before they merge](/blog/catching-slow-pull-requests-before-they-merge) shows how to set it up, and a real regression it caught on this site.
 
 ## Guardrail 6: Watch production, not just tests
 

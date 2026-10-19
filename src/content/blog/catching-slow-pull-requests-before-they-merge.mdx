@@ -1,0 +1,157 @@
+---
+title: "Catching slow pull requests before they merge"
+description: "I built an open-source check that measures every pull request against the main branch and says, in one comment, what got slower and why. Here's how it works, and what it caught on this site."
+date: "2026-10-19"
+tags: ["Performance", "CI", "Open Source", "Code Review"]
+draft: false
+---
+
+In [Performance guardrails](/blog/performance-guardrails-keeping-a-fast-site-fast) I wrote that some checks are mechanical enough that the build should do them on every pull request. A budget turns "is this too slow?" from an opinion into a number.
+
+That's easy to say and fiddly to do well. Page speed measurements are noisy, comparing against a fixed number misses slow creep, and a check that fails at random gets switched off within a week. So I built one that I'd trust on my own projects, and published it: [Perf Budget Guard](https://github.com/Gaurav3170/perf-budget-guard).
+
+This post explains what it does in plain terms, shows a real regression it caught on this site, and walks through setting it up on yours.
+
+## What it does
+
+Every time someone opens a pull request, Perf Budget Guard:
+
+1. **Builds your site twice:** once as it is on the main branch, and once with the pull request's changes.
+2. **Loads the pages you choose in Lighthouse,** Google's page-speed tool, on a simulated mid-range phone. Each page is loaded several times and the typical result is kept, so one slow load doesn't count.
+3. **Compares the two builds,** page by page: how much JavaScript is downloaded, how long the main content takes to appear, and how long the page is too busy to respond to a tap.
+4. **Checks the result against limits you set,** such as "no page downloads more than 400 kB of JavaScript" or "one pull request may not add more than 10 kB".
+5. **Posts one comment on the pull request:** 🟢 fine, 🟡 worth a look or 🔴 over budget. On 🔴 the check fails, and the comment names the scripts that caused it.
+
+Nobody has to remember to run anything. The question gets asked on every change, by a tool that has no opinion about whose code it is.
+
+## Watching it catch a real regression
+
+To see it work end to end, I opened [a pull request on this site](https://github.com/Gaurav3170/portfolio-2026/pull/2) that does two things a real change might do by accident:
+
+- It adds a small widget to the blog index that imports the whole of three.js, the 3D library behind the home page. On the home page it's loaded late, on purpose. On the blog, it's pure weight.
+- The widget keeps the browser busy for 400 ms when the page loads, the way a slow piece of setup code would.
+
+On my laptop the blog still felt fine. A few minutes after I opened the pull request, this was waiting on it:
+
+| `/blog` | Main branch | Pull request | Limit |
+| --- | --- | --- | --- |
+| Performance score | 94 | 68 | may drop by 5 at most |
+| JavaScript downloaded | 104 kB | 276 kB | may grow by 10 kB at most |
+| Total Blocking Time | 3 ms | 1.5 s | may grow by 20% at most |
+| Largest Contentful Paint | 3.1 s | 3.1 s | 3.5 s, and may grow by 15% at most |
+
+The check failed, and the comment listed the script that had grown by 170 kB. It also showed three things I wouldn't have spotted in review.
+
+**One change slowed down a page I never touched.** The blog post pages also gained 171 kB of JavaScript. The bundler had put three.js in a chunk the blog index and the post pages share, so every article got heavier too. A reviewer looking at the diff would only see a change to the blog index.
+
+**It didn't cry wolf about the home page.** The home page's scripts were reshuffled between chunks: one grew by 170 kB and another shrank by 170 kB. The total moved by 414 bytes, so the home page was reported as unchanged. A tool that only compared file names would have raised a false alarm.
+
+**A 400 ms freeze became 1.5 seconds.** Lighthouse simulates a mid-range phone, whose processor is several times slower than a laptop's. Code that feels instant on a developer's machine can make a phone unresponsive for over a second. That's the gap this kind of check exists to close.
+
+Taking the widget out and pushing again rewrites the same comment back to 🟢, with the failing result kept in a collapsed "previous run" section. The pull request then tells the whole story: the problem, and the fix.
+
+## Telling a real change from noise
+
+The hardest part of a performance check isn't measuring. It's not failing at random.
+
+Before setting any limits, I ran the tool with nothing changed: the same code as both "before" and "after". The time until the main content appeared on one article still moved by 9%. Nothing was different. That's normal run-to-run noise, and a check that treated it as a regression would fail every other pull request.
+
+Perf Budget Guard handles this in three ways:
+
+- **It interleaves the runs.** It measures the main branch, then the pull request, then the pull request, then the main branch, and so on, so if the machine slows down halfway through, both builds are affected equally.
+- **It compares typical results, not single runs.** Each page is loaded five times per build by default, and the middle value is compared.
+- **A change has to be bigger than the noise to count.** Each metric has a minimum change that's treated as meaningful, and the tool also looks at how much the runs varied. If two runs of the same code differ by 200 ms, a 150 ms difference isn't evidence of anything.
+
+Byte counts, on the other hand, are the same on every run, so a 171 kB increase is never noise. That makes the JavaScript limit the most dependable check you can set.
+
+## Setting it up on your own site
+
+You need a site with a build command and a start command, which almost every modern framework has, and a repository on GitHub. Then you add two files.
+
+**1. The workflow,** at `.github/workflows/perf-budget.yml`, tells GitHub to run the check on every pull request:
+
+```yaml
+name: Perf budget
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: perf-budget-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  perf-budget:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: Gaurav3170/perf-budget-guard@v1
+        with:
+          config: perf-budget.json
+```
+
+**2. The budget file,** `perf-budget.json`, says which pages to test and what the limits are. This is the one this site uses:
+
+```json
+{
+  "pages": ["/", "/blog", "/blog/shipping-a-3d-portfolio-without-killing-core-web-vitals"],
+  "runs": 5,
+  "formFactor": "mobile",
+  "budgets": {
+    "jsBytes": "400 kB",
+    "totalBytes": "550 kB",
+    "lcp": "3.5 s"
+  },
+  "maxIncrease": {
+    "performance": 5,
+    "jsBytes": "10 kB",
+    "lcp": "15%",
+    "tbt": "20%"
+  }
+}
+```
+
+There are two kinds of limit, and they do different jobs:
+
+- **`budgets` are fixed lines** a page must stay within, whatever the main branch does. They stop slow creep, where twenty pull requests each add a little.
+- **`maxIncrease` limits how much one pull request may make things worse,** even when the page is still well inside its budget. It catches one big jump early, like the 171 kB above.
+
+If a page is already over budget on the main branch, the check only warns, unless the pull request makes it worse. Existing problems don't block unrelated work.
+
+You can also try it on your own machine before adding anything to GitHub. From your project's folder:
+
+```sh
+npx perf-budget-guard run
+```
+
+That compares your current code, uncommitted changes included, with your main branch, and prints the same report.
+
+<Callout title="Use your own numbers">
+Don't copy my limits. Run the check once on a pull request that changes nothing, look at the numbers, and set each budget a little above them. Then loosen any per-PR limit that the unchanged run came close to. That's why this site allows LCP to move by 15%, not 10%: the unchanged run moved by 9%.
+</Callout>
+
+## What it can't tell you
+
+A check like this is useful because it's honest about its limits:
+
+- **It's lab data, not real visitors.** It tells you whether a change made a page slower under fixed conditions. It doesn't replace measuring what real users experience.
+- **The test machines have no graphics card.** This site's home page has a 3D scene, and on GitHub's machines it shows far more blocking time than on a real phone. So I don't set a fixed budget for blocking time on that page. I only limit how much one change can add.
+- **It doesn't measure how quickly the page responds to taps and clicks** (Interaction to Next Paint). That needs a real person interacting with the page. Total Blocking Time is the closest lab measurement.
+- **It takes a few minutes.** Each run builds the site twice and loads every page ten times. Keep the page list to the routes that matter most.
+
+## Try it
+
+Perf Budget Guard is free and open source, on [GitHub](https://github.com/Gaurav3170/perf-budget-guard) and [npm](https://www.npmjs.com/package/perf-budget-guard). [The pull request from this post](https://github.com/Gaurav3170/portfolio-2026/pull/2) is public, so you can read the full comment it left.
+
+Making a site fast is a project. Keeping it fast is a habit, and the easiest habits to keep are the ones a machine keeps for you.
