@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { profile } from "@/data/career";
 import { getAllPosts } from "@/lib/blog";
 import { PostList } from "@/components/Blog/PostList";
+import { PerfDemoWidget } from "@/components/Blog/PerfDemoWidget";
 import styles from "@/components/Blog/Blog.module.scss";
 
 const description =
@@ -25,6 +26,7 @@ export default function BlogIndexPage() {
           <p className={styles.eyebrow}>Writing</p>
           <h1 className={styles.title}>Field notes from production.</h1>
           <p className={styles.heroLede}>{description}</p>
+          <PerfDemoWidget />
         </div>
       </header>
       <div className={styles.listLayout}>
